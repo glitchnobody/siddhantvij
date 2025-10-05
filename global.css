@@ -95,34 +95,36 @@ body {
   padding: 0px 24px;
   background-color: var(--background);
   transition: background-color 0.45s ease-in-out;
-  .nav_menu {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 650px;
-    padding: 12px 0 6px 0;
-    border-bottom: solid 1px var(--border);
-    transition: border-bottom 0.45s ease-in-out;
-    ul {
-      list-style: none;
-      display: flex;
-      align-items: center;
-      margin: 0;
-      padding: 0;
-      gap: 12px;
-      li {
-        a {
-          color: var(--body-color);
-          text-decoration: none;
-          transition: color 0.45s ease-in-out, border-bottom 0.3s ease-in-out;
-          &:hover {
-            color: var(--accent);
-          }
-        }
-      }
-    }
-  }
+}
+
+.nav_menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 650px;
+  padding: 12px 0 6px 0;
+  border-bottom: solid 1px var(--border);
+  transition: border-bottom 0.45s ease-in-out;
+}
+
+.nav_menu ul {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  gap: 12px;
+}
+
+.nav_menu ul li a {
+  color: var(--body-color);
+  text-decoration: none;
+  transition: color 0.45s ease-in-out, border-bottom 0.3s ease-in-out;
+}
+
+.nav_menu ul li a:hover {
+  color: var(--accent);
 }
 
 .active_page {
@@ -133,54 +135,6 @@ body {
   &:hover {
     border-bottom: 1px solid var(--accent);
     color: var(--accent) !important;
-  }
-}
-
-.toggle_container {
-  display: flex !important;
-  align-items: center;
-  position: relative;
-  justify-content: center;
-  input {
-    cursor: pointer;
-    position: absolute;
-    z-index: 3;
-    width: 32px;
-    height: 32px;
-    opacity: 0;
-  }
-  &:hover .toggle_icon_container {
-    opacity: 0.8;
-  }
-  &:active .toggle_icon_container {
-    opacity: 1;
-  }
-}
-
-.toggle_icon_container {
-  cursor: pointer;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  justify-items: center;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  z-index: 1;
-  width: 32px;
-  height: 32px;
-  background-color: var(--card-background);
-  transition: background-color 0.45s ease-in-out, border 0.45s ease-in-out;
-  div {
-    height: 21px;
-    width: 15px;
-  }
-  svg {
-    width: 15px;
-    height: 15px;
-    aspect-ratio: 1/1;
-    fill: var(--body-color);
-    transition: fill 0.45s ease-in-out;
   }
 }
 
