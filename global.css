@@ -85,10 +85,10 @@ body {
 }
 
 .hide-if-no-js {
-  display: block;
+  display: none;
 }
 .show-if-no-js {
-  display: none;
+  display: block;
 }
 
 .nav {
