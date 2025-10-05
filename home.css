@@ -1,8 +1,9 @@
 .home_container {
   width: 100%;
-  padding: 12px 24px;
+  padding-left: 24px;
+  padding-right: 24px;
   margin: auto;
-  margin-top: 70px;
+  margin-top: 80px;
 }
 
 h1 {
@@ -37,4 +38,18 @@ hr {
   border: none;
   border-top: 1px solid var(--border);
   transition: border-top 0.45s ease-in-out;
+}
+
+.post_list {
+  list-style: none;
+  padding-left: 0;
+}
+.post_list li a {
+  color: var(--body-color);
+  text-decoration: underline;
+  padding-left: 10px;
+  transition: color 0.45s ease-in-out, border-bottom 0.3s ease-in-out;
+  &:hover {
+    color: var(--accent);
+  }
 }

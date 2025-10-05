@@ -1,0 +1,14 @@
+.container {
+  width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+  margin: auto;
+  margin-top: 80px;
+}
+
+section {
+  max-width: 650px;
+  margin: auto;
+  margin-bottom: 12px;
+  margin-top: 12px;
+}
