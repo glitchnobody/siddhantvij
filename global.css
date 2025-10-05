@@ -84,6 +84,13 @@ body {
   transition: background-color 0.45s ease-in-out;
 }
 
+.hide-if-no-js {
+  display: block;
+}
+.show-if-no-js {
+  display: none;
+}
+
 .nav {
   display: flex;
   align-items: center;
