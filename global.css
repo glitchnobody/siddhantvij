@@ -21,7 +21,10 @@
     oklch(37.4% 0.01 67.558),
     oklch(98.5% 0.001 106.423)
   );
-  --accent: light-dark(oklch(62.3% 0.214 259.815), oklch(62.3% 0.214 259.815));
+  --accent: light-dark(
+    oklch(57.105% 0.23631 260.272),
+    oklch(57.105% 0.23631 260.272)
+  );
   --accent-foreground: light-dark(
     oklch(98.5% 0.001 106.423),
     oklch(98.5% 0.001 106.423)
