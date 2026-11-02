@@ -390,10 +390,10 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 	}
 
 	/* ==================== sky ==================== */
-	let SW, SH, ink, skyImg, stars, galaxy, bodies, ships, trail, sparks, meteor, nextMeteor, nextShip;
+	let SW, SDW, SOX, SH, ink, skyImg, stars, galaxy, bodies, ships, trail, sparks, meteor, nextMeteor, nextShip;
 
 	function buildGalaxy() {
-		const R = rng(42), N = floor(clamp(SW * SH * .055, 16000, 70000)), Rg = SW * .2, xs = new Float32Array(N), ys = new Float32Array(N);
+		const R = rng(42), N = floor(clamp(SDW * SH * .055, 16000, 70000)), Rg = SDW * .2, xs = new Float32Array(N), ys = new Float32Array(N);
 		const gauss = () => (R() + R() + R() + R() - 2) * 1.05, b = .42, r0 = Rg * .1;
 		for (let i = 0; i < N; i++) {
 			const k = R();
@@ -409,7 +409,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 			}
 			xs[i] = cos(th) * r; ys[i] = sin(th) * r;
 		}
-		return { xs, ys, N, cx: SW * .46, cy: SH * .36, tilt: .36, ca: cos(-.36), sa: sin(-.36), a: 0, boost: 0, Rg };
+		return { xs, ys, N, cx: SOX + SDW * .46, cy: SH * .36, tilt: .36, ca: cos(-.36), sa: sin(-.36), a: 0, boost: 0, Rg };
 	}
 	function drawGalaxy(G, dt) {
 		G.boost *= .97;
@@ -443,21 +443,25 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 	function skyArt() { // the sky's sprites depend on the theme, so rebuild them when it changes
 		cacheSky.clear();
 		const u = SW < 500 ? .7 : 1, planets = [0, 1, 2, 3].map(i => makeRinged(round(26 * u), i * 1.57));
-		bodies[0].spr = makeMoon(round(15 * u), 3);
-		bodies[1].frames = planets; bodies[1].spr = planets[0];
-		bodies[2].spr = makeMoon(round(7 * u), 8);
+		const moon = makeMoon(round(15 * u), 3), moon2 = makeMoon(round(7 * u), 8);
+		for (const b of bodies) { if (b.key === 'planet') { b.frames = planets; b.spr = planets[0]; } else b.spr = b.key === 'moon' ? moon : moon2; }
 	}
 	function setupSky() {
 		SH = floor(clamp(innerHeight * .44, 260, 440) / skyScale);
-		SW = ceil(document.documentElement.clientWidth / skyScale);
+		SW = ceil(document.documentElement.clientWidth / skyScale); SDW = min(SW, 1400); SOX = floor((SW - SDW) / 2); // the scene is composed for one fixed width; the space either side repeats its moons and planets
 		skyImg = frameFor(skyEl, skyCtx, SW, SH, skyScale);
 		ink = new Uint8Array(SW * SH);
 		stars = buildStars(); galaxy = buildGalaxy();
 		bodies = [
-			{ key: 'moon', x: SW * .085, y: SH * .14 },
-			{ key: 'planet', x: SW * .82, y: SH * .05, shimmer: 0 },
-			{ key: 'moon2', x: SW * .92, y: SH * .3 }
+			{ key: 'moon', x: SOX + SDW * .085, y: SH * .14 },
+			{ key: 'planet', x: SOX + SDW * .82, y: SH * .05, shimmer: 0 },
+			{ key: 'moon2', x: SOX + SDW * .92, y: SH * .3 }
 		];
+		const R = rng(7);
+		[[0, SOX], [SOX + SDW, SW]].forEach(([x0, x1]) => { for (let ox = x0, k = 0; ox < x1; ox += SDW, k++) [['moon', .085, .14], ['planet', .82, .05], ['moon2', .92, .3]].forEach(([key, fx, fy]) => {
+			const x = ox + SDW * clamp((k % 2 ? 1 - fx : fx) + (R() - .5) * .12, 0, 1);
+			if (R() < .75 && x > x0 + 10 && x < x1 - 40) bodies.push({ key, x, y: SH * (fy + (R() - .5) * .12), shimmer: 0 });
+		}); });
 		skyArt();
 		ships = []; trail = []; sparks = []; meteor = null; nextMeteor = 4; nextShip = 1;
 		if (!calm) { spawnShip(true); spawnShip(true); }
@@ -880,48 +884,60 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 		gbuf = new Uint8Array(PW * PH);
 		base = buildTerrain();
 		ents = []; prints = []; motes = []; rings2 = [];
-		const R = rng(11), u = wide ? min(1.2, GW / 700) : .72;
+		const u = wide ? min(1, GW / 700) : .72, DW = wide ? min(GW, 700) : GW, OX = floor((GW - DW) / 2);
+		const fy = k => HY + (GH - HY) * k, add = e => { ents.push(e); return e; };
+		// the scene is composed for one fixed width in the middle; the space either side repeats it, mirrored and jittered
+		const blocks = [{ ox: OX, main: true }];
+		for (let k = 1, ox = OX - DW; ox + DW > 24; k++, ox -= DW) blocks.push({ ox, flip: k % 2 === 1, R: rng(100 + k) });
+		for (let k = 1, ox = OX + DW; ox < GW - 24; k++, ox += DW) blocks.push({ ox, flip: k % 2 === 1, R: rng(200 + k) });
+		const at = (B, fx) => B.ox + DW * (B.flip ? 1 - fx : fx) + (B.main ? 0 : (B.R() - .5) * DW * .06), ok = (B, x) => B.main || (x > 24 && x < GW - 24);
+		const main = blocks[0];
 
-		craters = (wide ? [[.38, .86, 32, 1], [.72, .74, 20, 0], [.6, .46, 13, 0], [.17, .72, 11, 0]] : [[.5, .88, 24, 1], [.2, .62, 10, 0]]).map(c => ({ x: GW * c[0], y: GH * c[1], r: c[2], ridged: !!c[3] }));
+		craters = [];
+		blocks.forEach(B => (wide ? [[.38, .86, 32, 1], [.72, .74, 20, 0], [.6, .46, 13, 0], [.17, .72, 11, 0]] : [[.5, .88, 24, 1], [.2, .62, 10, 0]]).forEach(c => {
+			const x = at(B, c[0]); if (ok(B, x) && (B.main || !c[3])) craters.push({ x, y: GH * c[1], r: c[2], ridged: !!c[3] });
+		}));
 		craters.forEach(bakeCrater);
-		(wide ? [[.04, .84, 22, 8], [.15, .93, 14, 6], [.34, .62, 18, 7], [.45, .94, 11, 5], [.5, .34, 15, 6], [.56, .7, 24, 8], [.66, .92, 16, 6], [.83, .8, 26, 8], [.86, .56, 14, 5]] : [[.06, .9, 16, 6], [.36, .6, 14, 6], [.62, .9, 18, 7]])
-			.forEach((c, i) => blit(base, PW, PH, makeSlab(round(c[2] * u), round(c[3] * u), i * 1.7 + 1), (GW * c[0] - c[2] * u / 2) * A, (HY + (GH - HY) * c[1] - c[3] * u) * A));
-		const add = e => { ents.push(e); return e; };
-		const put = (type, spr, fx, y, more) => add({ type, spr, x: GW * fx, y, shake: 0, hov: 0, bend: 0, ph: R() * TAU, ...more });
-		const fy = k => HY + (GH - HY) * k;
+		blocks.forEach((B, bi) => (wide ? [[.04, .84, 22, 8], [.15, .93, 14, 6], [.34, .62, 18, 7], [.45, .94, 11, 5], [.5, .34, 15, 6], [.56, .7, 24, 8], [.66, .92, 16, 6], [.83, .8, 26, 8], [.86, .56, 14, 5]] : [[.06, .9, 16, 6], [.36, .6, 14, 6], [.62, .9, 18, 7]])
+			.forEach((c, i) => { const x = at(B, c[0]); if (ok(B, x)) blit(base, PW, PH, makeSlab(round(c[2] * u), round(c[3] * u), i * 1.7 + 1 + bi * 3), (x - c[2] * u / 2) * A, (HY + (GH - HY) * c[1] - c[3] * u) * A); }));
+
+		let B = main, sd = 0, crystalSpots;
+		const put = (type, spr, fx, y, more) => { const x = at(B, fx); return ok(B, x) ? add({ type, spr, x, y, shake: 0, hov: 0, bend: 0, ph: rng(sd + ents.length)() * TAU, ...more }) : null; };
 
 		// the foreground mound frames a corner; cats pass behind it
+		const rockW = wide ? 104 : 78, rockY = fy(.66), rockH = wide ? 48 : 38, rock = makeMound(rockW, rockH, 3.3, 3), rockX = at(main, wide ? .62 : .66);
 		(wide ? [[.98, 190, 58, 7.7]] : [[1, 130, 40, 7.7]])
-			.forEach(c => add({ type: 'mound', spr: makeMound(c[1], c[2], c[3], c[1] > 110 ? 5 : 2), x: GW * c[0], y: GH + 400, feet: GH + 2, clickless: true }));
-
-		const rockW = wide ? 104 : 78, rockH = wide ? 48 : 38, rock = makeMound(rockW, rockH, 3.3, 3), rockX = GW * (wide ? .62 : .66), rockY = fy(.66);
+			.forEach(c => add({ type: 'mound', spr: makeMound(c[1], c[2], c[3], c[1] > 110 ? 5 : 2), x: at(main, c[0]), y: GH + 400, feet: GH + 2, clickless: true }));
 		add({ type: 'mound', spr: rock, x: rockX, y: rockY, clickless: true });
 
-		const glow = (fx, k, w, h, seed, n, trunk) => { const spr = glowPlant(round(w * u), round(h * u), seed, n, trunk); put('plant', spr, fx, fy(k), { orbs: spr.orbs, flare: 0, emit: rand(0, 1) }); };
-		const small = (kind, fx, k, w, h, seed) => put('plant', kind(round(w * u), round(h * u), seed), fx, fy(k));
-		// foliage thins out towards the front and sits mostly in the back rows, smaller with distance, so the open ground stays clear for the cats
-		if (wide) {
-			glow(.45, .2, 40, 52, 21, 3, true); glow(.77, .13, 32, 40, 23, 2, true); glow(.12, .86, 28, 30, 22, 2);
-			small(cupPlant, .9, .36, 28, 40, 25); small(cupPlant, .17, .3, 24, 34, 26);
-			[[.07, .12, 20, 15], [.22, .08, 18, 14], [.5, .1, 20, 15], [.63, .2, 22, 16], [.93, .14, 20, 15], [.46, .5, 24, 18]].forEach((m, i) => small(shrooms, m[0], m[1], m[2], m[3], 30 + i));
-		} else {
-			glow(.4, .2, 36, 46, 21, 3, true); glow(.12, .84, 26, 28, 22, 2);
-			small(cupPlant, .86, .4, 26, 38, 25);
-			[[.08, .12, 18, 14], [.62, .1, 20, 15], [.78, .62, 22, 16]].forEach((m, i) => small(shrooms, m[0], m[1], m[2], m[3], 30 + i));
-		}
-
-		const crystalSpots = (wide ? [[.28, .9, 40], [.05, .76, 32], [.5, .66, 30], [.7, .94, 34], [.86, .54, 28], [.97, .72, 24]] : [[.3, .9, 34], [.1, .62, 28], [.62, .62, 28]])
-			.map(c => ({ fx: c[0], y: fy(c[1]), size: round(c[2] * u) }));
-		crystalSpots.forEach((c, i) => put('crystal', crystals(c.size, c.size, i + 3), c.fx, c.y));
-
 		const framesOf = (w, h, n, art) => Array.from({ length: n }, (_, f) => gsprite(w, h, g => art(g, f)));
+		blocks.forEach((b, bi) => {
+			B = b; sd = bi * 9;
+			const glow = (fx, k, w, h, seed, n, trunk) => { const spr = glowPlant(round(w * u), round(h * u), seed + sd, n, trunk); put('plant', spr, fx, fy(k), { orbs: spr.orbs, flare: 0, emit: rand(0, 1) }); };
+			const small = (kind, fx, k, w, h, seed) => put('plant', kind(round(w * u), round(h * u), seed + sd), fx, fy(k));
+			// foliage thins out towards the front and sits mostly in the back rows, smaller with distance, so the open ground stays clear for the cats
+			if (wide) {
+				glow(.45, .2, 40, 52, 21, 3, true); glow(.77, .13, 32, 40, 23, 2, true); glow(.12, .86, 28, 30, 22, 2);
+				small(cupPlant, .9, .36, 28, 40, 25); small(cupPlant, .17, .3, 24, 34, 26);
+				[[.07, .12, 20, 15], [.22, .08, 18, 14], [.5, .1, 20, 15], [.63, .2, 22, 16], [.93, .14, 20, 15], [.46, .5, 24, 18]].forEach((m, i) => small(shrooms, m[0], m[1], m[2], m[3], 30 + i));
+			} else {
+				glow(.4, .2, 36, 46, 21, 3, true); glow(.12, .84, 26, 28, 22, 2);
+				small(cupPlant, .86, .4, 26, 38, 25);
+				[[.08, .12, 18, 14], [.62, .1, 20, 15], [.78, .62, 22, 16]].forEach((m, i) => small(shrooms, m[0], m[1], m[2], m[3], 30 + i));
+			}
+			const cs = (wide ? [[.28, .9, 40], [.05, .76, 32], [.5, .66, 30], [.7, .94, 34], [.86, .54, 28], [.97, .72, 24]] : [[.3, .9, 34], [.1, .62, 28], [.62, .62, 28]])
+				.map(c => ({ fx: c[0], y: fy(c[1]), size: round(c[2] * u) }));
+			cs.forEach((c, i) => put('crystal', crystals(c.size, c.size, i + 3 + sd), c.fx, c.y));
+			if (b.main) crystalSpots = cs;
+		});
+		B = main;
 		put('beacon', null, wide ? .31 : .34, fy(.3), { frames: framesOf(16, 42, 2, beaconArt), orbs: [{ x: 8, y: 6, r: 3.4 }], flare: 0, emit: 0 });
 		spots = {
 			rock: { x: rockX, y: rockY + 1, z: rockH - 5, down: { x: rockX - rockW * .62, y: rockY + 9 }, by: null, face: 1 },
-			crystal: { x: GW * crystalSpots[0].fx + crystalSpots[0].size * .7, y: crystalSpots[0].y - 2, by: null, face: -1, pose: 'mine', dur: 8 }
+			crystal: { x: at(main, crystalSpots[0].fx) + crystalSpots[0].size * .7, y: crystalSpots[0].y - 2, by: null, face: -1, pose: 'mine', dur: 8 }
 		};
 		cats = [0, 1, 2].map(i => ({
-			id: i, coat: i, x: GW * [.32, .62, .72][i], y: clampY(fy([.72, .7, .8][i])), z: 0, dir: i === 2 ? -1 : 1, pose: i === 2 ? 'look' : 'idle', expr: 'neutral', sz: 1,
+			id: i, coat: i, x: at(main, [.32, .62, .72][i]), y: clampY(fy([.72, .7, .8][i])), z: 0, dir: i === 2 ? -1 : 1, pose: i === 2 ? 'look' : 'idle', expr: 'neutral', sz: 1,
 			go: null, after: null, until: 1 + i * 2, spot: null, follow: false, forced: false, run: false, hop: null, dist: 0, step: 0, lx: 0, ly: 0, bubble: null, nextZ: 0
 		}));
 		const c = cats[1], s = spots.rock;
@@ -1154,7 +1170,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 
 	function setup() {
 		const w = document.documentElement.clientWidth;
-		skyScale = w < 2400 ? 1 : 2; A = w < 700 ? 1 : 2; scale = A * skyScale; // sky and ground share one dot size
+		skyScale = 1; A = w < 700 ? 1 : 2; scale = A * skyScale; // sky and ground share one dot size
 		setupSky(); buildGround();
 		$('canvas').attr('data-ready', '');
 	}
