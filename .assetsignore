@@ -9,3 +9,6 @@ src
 wrangler.jsonc
 node_modules
 .wrangler
+.agents
+.claude
+skills-lock.json

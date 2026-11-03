@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="robots" content="noindex">
+	<title>Page not found &mdash; Siddhant Vij</title>
+	<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200..700&display=swap" rel="stylesheet">
+	<!-- apply the saved theme before first paint so the page never flashes the wrong colours -->
+	<script>try{if(localStorage.getItem("theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+	<link rel="stylesheet" href="/global.css">
+</head>
+<body>
+	<canvas id="sky" role="img" aria-label="A starry sky with a rotating galaxy, a ringed planet and drifting spaceships. Clicking the galaxy switches between dark and light mode"></canvas>
+
+	<main class="not-found">
+		<h1>404</h1>
+		<p>The page you are looking for does not exist, please check the link again.</p>
+		<a class="button" href="/">Go to home</a>
+	</main>
+
+	<canvas id="ground" role="img" aria-label="A moon landscape with alien plants, craters and astronaut cats"></canvas>
+
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/main.js"></script>
+	<script src="/js/appear.js"></script>
+</body>
+</html>

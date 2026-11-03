@@ -1,68 +1,402 @@
-:root{--bg:#121212;--fg:#fff}
-:root[data-theme=light]{--bg:#eee;--fg:#000}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%}
-html{overflow-y:scroll}
-body{position:relative;display:flex;flex-direction:column;min-height:100vh;background:var(--bg);color:var(--fg);font-family:'Inter Tight',sans-serif;overflow-x:hidden}
-html.fade body{transition:background-color .4s,color .4s}
-/* theme switch: the page is snapshotted and the new theme is revealed as a growing circle (animated from JS) */
-::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
-::view-transition-old(root){z-index:1}
-::view-transition-new(root){z-index:2;-webkit-mask-image:radial-gradient(circle at var(--sx,50%) var(--sy,50%),#000 calc(var(--r) - var(--f,260px)),rgb(0 0 0/.6) calc(var(--r) - var(--f,260px)*.5),transparent var(--r));mask-image:radial-gradient(circle at var(--sx,50%) var(--sy,50%),#000 calc(var(--r) - var(--f,260px)),rgb(0 0 0/.6) calc(var(--r) - var(--f,260px)*.5),transparent var(--r))}
-/* Film grain, copied from nemaas.com */
-body::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background-image:url(img/noise.svg),url(img/noise.svg);background-repeat:repeat;background-size:140px 140px,280px 280px;background-position:0 0,70px 40px;opacity:.32;mix-blend-mode:screen;filter:brightness(.5) contrast(240%)}
-:root[data-theme=light] body::after{opacity:.14;mix-blend-mode:multiply;filter:none}
-button{font:inherit;font-size:.8rem;color:var(--fg);background:var(--bg);border:1px solid currentColor;border-radius:999px;padding:4px 12px;cursor:pointer}
-@media (hover:hover){button:hover{color:var(--bg);background:var(--fg)}}
-canvas{display:block;flex:none;image-rendering:pixelated;opacity:0;transition:opacity .7s ease;touch-action:pan-y;-webkit-tap-highlight-color:transparent;user-select:none}
-canvas[data-ready]{opacity:1}
-main{flex:1;width:100%;max-width:620px;margin:0 auto;padding:1.5rem 16px;line-height:1.65}
-h1{font-weight:500;font-size:clamp(1.5rem,5vw,2.5rem);margin:0 0 1rem}
-p{margin:0 0 1rem}
-@media (prefers-reduced-motion:reduce){canvas,html.fade body{transition:none}}
-/* top + work sections */
-main{font-family:'Inter Tight',sans-serif;font-weight:300;padding-top:3rem;line-height:24px}
-h1{font-weight:600;font-size:16px;line-height:20px;margin:0}
-.rolerow{display:flex;align-items:center;justify-content:space-between;margin-bottom:54px}
-.role{color:color-mix(in srgb,var(--fg) 55%,var(--bg));margin:0}
-.top p{margin:0 0 16px}
-.top{margin-bottom:96px}
-main a{color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--fg) 14%,transparent);text-underline-offset:4px}
-main b{font-weight:500}
-h2{font-weight:400;font-size:14px;line-height:17.5px;color:color-mix(in srgb,var(--fg) 55%,var(--bg));margin:0 0 16px}
-.work ul{list-style:none;margin:0 -12px;padding:0}
-.work li a{display:flex;align-items:center;gap:16px;height:72px;padding:0 12px;border-radius:12px;text-decoration:none}
-@media (hover:hover){.work li a:hover{background:color-mix(in srgb,var(--fg) 5%,transparent)}}
-.ico{flex:none;width:32px;height:32px;display:grid;place-items:center;background:color-mix(in srgb,var(--fg) 6%,transparent);border:1px solid color-mix(in srgb,var(--fg) 8%,transparent);border-radius:8px;font-size:14px}
-.name{flex:1;font-weight:500}
-.tags,.yr{font-size:14px;line-height:17.5px;color:color-mix(in srgb,var(--fg) 55%,var(--bg))}
-.tags{margin-right:8px}
-@media (max-width:520px){.tags{display:none}}
-/* icon-only sound + theme controls: invisible background until hover */
-.ctrl{display:flex;gap:4px;margin-right:-8px}
-.ctrl button{display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:transparent;color:color-mix(in srgb,var(--fg) 55%,var(--bg))}
-@media (hover:hover){.ctrl button:hover{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}}
-.ctrl button:focus-visible{outline:2px solid var(--fg)}
-#sound .off,#sound[aria-pressed=false] .on{display:none}
-#sound[aria-pressed=false] .off{display:block}
-#theme .sun{display:none}
-:root[data-theme=light] #theme .moon{display:none}
-:root[data-theme=light] #theme .sun{display:block}
-.ctrl svg{grid-area:1/1}
-.ctrl svg{width:20px;height:20px}
-.top .role{margin:0}
-#sky{-webkit-mask-image:linear-gradient(to bottom,#000 78%,transparent);mask-image:linear-gradient(to bottom,#000 78%,transparent)}
-/* contact modal */
-dialog{border:1px solid color-mix(in srgb,var(--fg) 12%,transparent);border-radius:16px;background:var(--bg);color:var(--fg);padding:0;width:min(440px,calc(100vw - 32px));font-family:'Inter Tight',sans-serif;font-weight:300}
-dialog::backdrop{background:rgb(0 0 0/.5)}
-dialog form{display:flex;flex-direction:column;gap:14px;padding:24px}
-dialog .title{margin:0;font-weight:600;font-size:16px}
-dialog label{display:flex;flex-direction:column;gap:6px;font-size:14px;color:color-mix(in srgb,var(--fg) 55%,var(--bg))}
-dialog input,dialog textarea{font:inherit;font-size:16px;color:var(--fg);background:color-mix(in srgb,var(--fg) 6%,transparent);border:1px solid color-mix(in srgb,var(--fg) 12%,transparent);border-radius:8px;padding:10px 12px;resize:vertical}
-dialog input:focus,dialog textarea:focus{outline:2px solid color-mix(in srgb,var(--fg) 40%,transparent);outline-offset:1px}
-dialog .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
-dialog .status{margin:0;min-height:20px;font-size:14px;color:color-mix(in srgb,var(--fg) 70%,var(--bg))}
-dialog .actions{display:flex;justify-content:flex-end;gap:8px}
-dialog .actions button{font-size:14px;border-radius:8px;padding:8px 16px}
-dialog .actions button[type=submit]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-dialog .actions button:disabled{opacity:.5;cursor:default}
+/* ==========================================================================
+   Tokens
+   ========================================================================== */
+:root {
+	--bg: #121212;
+	--fg: #fff;
+	--fg-2: color-mix(in srgb, var(--fg) 88%, var(--bg));    /* body text */
+	--fg-3: color-mix(in srgb, var(--fg) 60%, var(--bg));    /* secondary text */
+	--line: color-mix(in srgb, var(--fg) 16%, transparent);  /* borders */
+	--field: color-mix(in srgb, var(--fg) 6%, transparent);  /* form fields */
+	--tint: color-mix(in srgb, var(--fg) 8%, transparent);   /* chips, hover backgrounds */
+	--tint-strong: color-mix(in srgb, var(--fg) 14%, transparent);
+	--focus: color-mix(in srgb, var(--fg) 40%, transparent);
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+:root[data-theme=light] { --bg: #eee; --fg: #000; }
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* no visible scrollbars anywhere (page, dialogs, text areas); scrolling itself still works */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+body {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	background: var(--bg);
+	color: var(--fg);
+	font-family: 'Inter Tight', sans-serif;
+	overflow-x: hidden;
+}
+html.fade body { transition: background-color 0.3s ease, color 0.3s ease; }  /* main.js adds .fade while the theme switches */
+
+/* Theme switch: the page is snapshotted and the new theme is revealed as a growing circle (driven from main.js) */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) {
+	z-index: 2;
+	-webkit-mask-image: radial-gradient(circle at var(--sx, 50%) var(--sy, 50%), #000 calc(var(--r) - var(--f, 260px)), rgb(0 0 0 / 0.6) calc(var(--r) - var(--f, 260px) * 0.5), transparent var(--r));
+	mask-image: radial-gradient(circle at var(--sx, 50%) var(--sy, 50%), #000 calc(var(--r) - var(--f, 260px)), rgb(0 0 0 / 0.6) calc(var(--r) - var(--f, 260px) * 0.5), transparent var(--r));
+}
+
+/* Film grain */
+body::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	pointer-events: none;
+	background-image: url(img/noise.svg), url(img/noise.svg);
+	background-size: 140px 140px, 280px 280px;
+	background-position: 0 0, 70px 40px;
+	opacity: 0.32;
+	mix-blend-mode: screen;
+	filter: brightness(0.5) contrast(240%);
+}
+:root[data-theme=light] body::after { opacity: 0.14; mix-blend-mode: multiply; filter: none; }
+
+button { font: inherit; }
+
+/* The two canvas scenes (drawn by main.js) */
+canvas {
+	display: block;
+	flex: none;
+	image-rendering: pixelated;
+	opacity: 0;
+	filter: blur(4px);
+	transition: opacity 0.7s var(--ease-out), filter 0.7s var(--ease-out);
+	touch-action: pan-y;
+	-webkit-tap-highlight-color: transparent;
+	user-select: none;
+}
+canvas[data-ready] { opacity: 1; filter: none; }
+#sky { mask-image: linear-gradient(to bottom, #000 78%, transparent); -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent); }
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+main {
+	flex: 1;
+	width: 100%;
+	max-width: 620px;
+	margin: 0 auto;
+	padding: 0 16px 1.5rem;
+	font-weight: 300;
+	line-height: 1.6;
+	color: var(--fg-2);
+	min-width: 0;
+	overflow-wrap: break-word;   /* a very long word wraps instead of pushing the page wider */
+}
+h1 { margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; color: var(--fg); text-wrap: balance; }
+h2, h3 { font-weight: 400; line-height: 1.25; color: var(--fg-3); }
+h2 { margin: 0 0 1rem; font-size: 0.875rem; }
+h3 { margin: 1.75rem 0 1rem; font-size: 0.8125rem; }
+h2 + h3 { margin-top: 0; }
+b { font-weight: 500; }
+
+main a {
+	color: var(--fg);
+	text-decoration: underline;
+	text-decoration-color: color-mix(in srgb, var(--fg) 25%, transparent);
+	text-decoration-thickness: from-font;
+	text-underline-offset: 4px;
+}
+
+/* ==========================================================================
+   About
+   ========================================================================== */
+.about { margin-bottom: 6rem; }
+.about > p { margin: 0 0 1.25rem; line-height: 1.7; text-wrap: pretty; }   /* direct children only: the tagline keeps its own spacing */
+
+.masthead > div:first-child { min-width: 0; }
+.masthead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
+.tagline { margin: 0.125rem 0 0; font-weight: 400; color: var(--fg-3); }
+
+/* sound + theme: icon only, background appears on hover */
+.ctrl { display: flex; gap: 4px; margin-right: -8px; }
+.ctrl button {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--fg-3);
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+.ctrl button:focus-visible { outline: 2px solid var(--fg); }
+.ctrl svg { grid-area: 1 / 1; width: 20px; height: 20px; }
+#sound .off, #sound[aria-pressed=false] .on, #theme .sun, :root[data-theme=light] #theme .moon { display: none; }
+#sound[aria-pressed=false] .off, :root[data-theme=light] #theme .sun { display: block; }
+
+/* company pills in the intro */
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 6px;
+	border-radius: 4px;
+	background: var(--tint);
+	color: var(--fg);
+	font-weight: 500;
+	line-height: 1.25;
+	text-decoration: none;
+	transition: background-color 0.15s ease;
+}
+.chip svg { flex: none; width: 14px; height: 14px; }
+.chip .rnd { border-radius: 2px; }
+
+/* links with an icon: the icon sits over reserved space inside the link, so the underline runs under it
+   and the icon can never wrap away from its word */
+.ilink { position: relative; white-space: nowrap; }
+.ilink::before { content: "\2003\2005"; }
+.ilink svg { position: absolute; left: 0; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); }
+
+/* ==========================================================================
+   Groups: Experience, Links, Current Setup
+   ========================================================================== */
+.group + .group { margin-top: 4rem; }
+.group ul { margin: 0; padding: 0; list-style: none; }
+
+/* one row = icon or logo | text | trailing content */
+.row {
+	display: grid;
+	grid-template-columns: 36px minmax(0, 1fr) auto;
+	column-gap: 12px;
+	align-items: center;
+	margin: 0 -10px;           /* the box extends 10px past the text column so a hover background has room */
+	padding: 10px;
+	border-radius: 12px;
+	transition: background-color 0.15s ease;
+}
+.experience .row { min-height: 4.5rem; padding: 0.75rem 10px; }
+a.row { color: var(--fg); text-decoration: none; }
+
+.logo, .tile { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--line); }
+.logo { display: block; object-fit: cover; }
+.tile { display: grid; place-items: center; color: var(--fg); }
+.tile svg { width: 18px; height: 18px; }
+
+.who { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.name { font-size: 1rem; font-weight: 500; line-height: 1.3; color: var(--fg); }
+.role { font-size: 0.875rem; font-weight: 400; line-height: 1.3; color: var(--fg-3); }
+.role a { color: inherit; }
+.date { font-size: 0.875rem; font-weight: 400; line-height: 1.3; color: var(--fg-3); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: end; }
+@supports (text-box: trim-both cap alphabetic) {
+	.name, .role, .date { text-box: trim-both cap alphabetic; }  /* optically centres the text beside the 36px box */
+}
+
+/* ---- Links ---- */
+.links ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; margin-top: -0.25rem; }
+.go { display: flex; align-items: center; justify-content: flex-end; gap: 4px; color: var(--fg-3); }
+.arrow { display: block; width: 20px; height: 20px; transition: color 0.15s ease; }
+.arrow.send { width: 18px; height: 18px; }
+
+.has-cover { position: relative; }
+.cover { position: absolute; inset: 0; border-radius: 12px; }
+a.row:focus-visible, .cover:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+@media (hover: hover) and (pointer: fine) {
+	.row:is(a, .has-cover):hover { background: var(--tint); }
+	.row:is(a, .has-cover):hover .arrow { color: var(--fg); }
+	.chip:hover { background: var(--tint-strong); }
+	.contact-fab:hover { background: color-mix(in srgb, var(--fg) 8%, var(--bg)); }
+	.button:hover { background: var(--bg); color: var(--fg); }
+	.ctrl button:hover { background: var(--tint); color: var(--fg); }
+	.copy:hover { background: var(--tint); color: var(--fg); }
+	dialog .actions button:hover { background: var(--fg); color: var(--bg); }
+}
+
+.copy {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--fg-3);
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+.copy svg { grid-area: 1 / 1; width: 18px; height: 18px; }
+.copy .check, .copy.done .clip { display: none; }
+.copy.done .check { display: block; }
+.copy.done { color: var(--fg); }
+.copy:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* "Copied" floats up out of the copy button and fades (copy.js adds and removes it) */
+.pop {
+	position: absolute;
+	left: 50%;
+	bottom: 100%;
+	margin-bottom: 2px;
+	font-size: 0.75rem;
+	font-weight: 500;
+	line-height: 1;
+	color: var(--fg);
+	white-space: nowrap;
+	pointer-events: none;
+	animation: copied-move 1.6s var(--ease-out) forwards, copied-fade 1.6s linear forwards;
+}
+@keyframes copied-move { from { transform: translate(-50%, 8px); } to { transform: translate(-50%, -56px); } }
+@keyframes copied-fade { 0% { opacity: 0; filter: blur(0); } 10% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(1.5px); } }
+
+/* ---- Current Setup ---- */
+.setup h3.next { margin-top: 2rem; }
+.setup .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.5rem; }
+.setup .cols h3 { margin-top: 0; }
+.setup .tile svg { width: 20px; height: 20px; }
+
+.setup .sub { margin: -0.25rem 0 0; padding: 0 0 0 48px; }       /* 48px lines the list up with the name above it */
+.setup .sub li { position: relative; margin: 0 0 0.5rem; font-size: 1rem; line-height: 1.4; color: var(--fg-2); }
+.setup .sub li::before { content: "\2013"; position: absolute; left: -12px; color: var(--fg-3); }
+
+.setup .harness { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem 1.5rem; margin-top: -0.25rem; }
+
+@media (max-width: 560px) {
+	.links ul, .setup .cols, .setup .harness { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 360px) {
+	.date { white-space: normal; max-width: 7.5rem; }   /* long date ranges wrap on very narrow screens */
+}
+
+/* ==========================================================================
+   Intro pills: hover blurs what follows the pill and writes a line in its place (pills.js)
+   ========================================================================== */
+.about .rvp { position: relative; text-wrap: wrap; }   /* plain wrapping so the overlay breaks lines exactly like the text underneath */
+.rvp .orig { display: block; }
+
+/* everything after the pill: leaving is quick, entering blurs first and then fades out completely */
+.rvp .tail { transition: opacity 0.2s var(--ease-out), filter 0.25s var(--ease-out); }
+.rvp .tail.dim { opacity: 0; filter: blur(4px); transition: filter 0.3s var(--ease-out), opacity 0.35s var(--ease-out) 0.1s; }
+
+.rvp .rv { position: absolute; inset: 0; display: block; opacity: 0; visibility: hidden; pointer-events: none; }
+.rvp .rv.on { opacity: 1; visibility: visible; }
+.rvp .rv.out { transition: opacity 0.2s var(--ease-out), visibility 0s 0.2s; }
+.rvp .rv .ghost { visibility: hidden; }
+.rvp .rv .chip { pointer-events: auto; }
+.rvp .rv.out .chip { pointer-events: none; }
+.rvp .rv .w { opacity: 0; }
+.rvp .rv.out .w { opacity: 1; }
+.rvp .rv.on .w { animation: word-in 0.3s var(--ease-out) calc(var(--i) * 55ms) both; }
+@keyframes word-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ==========================================================================
+   Contact button (fixed, bottom right; opens the contact dialog)
+   ========================================================================== */
+.contact-fab {
+	position: fixed;
+	right: max(16px, env(safe-area-inset-right));
+	bottom: max(16px, env(safe-area-inset-bottom));
+	z-index: 10;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 14px;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	background: var(--bg);
+	color: var(--fg);
+	font-size: 0.875rem;
+	font-weight: 500;
+	line-height: 1.25;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+.contact-fab svg { width: 18px; height: 18px; }
+.contact-fab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ==========================================================================
+   404 page: the same sky and ground, a message in the middle
+   ========================================================================== */
+.not-found { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-block: 1.5rem; text-align: center; }   /* equal padding so the message sits exactly between the two scenes */
+.not-found h1 { font-size: clamp(4rem, 14vw, 6.5rem); line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.not-found p { max-width: 30ch; margin: 1rem 0 2rem; font-size: 1rem; line-height: 1.6; text-wrap: balance; }
+.button {
+	display: inline-block;
+	padding: 10px 18px;
+	border: 1px solid var(--fg);
+	border-radius: 8px;
+	background: var(--fg);
+	color: var(--bg);
+	font-size: 0.875rem;
+	font-weight: 500;
+	line-height: 1.25;
+	text-decoration: none;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+.button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ==========================================================================
+   Contact dialogs
+   ========================================================================== */
+dialog {
+	width: min(440px, calc(100vw - 32px));
+	padding: 0;
+	border: 1px solid var(--line);
+	border-radius: 16px;
+	background: var(--bg);
+	color: var(--fg);
+	font-weight: 300;
+}
+dialog::backdrop { background: rgb(0 0 0 / 0.5); }
+dialog form { display: flex; flex-direction: column; gap: 14px; padding: 24px; }
+dialog .title { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.3; text-wrap: balance; }
+dialog .blurb { margin: -6px 0 0; font-size: 0.875rem; line-height: 1.4; color: var(--fg-3); text-wrap: pretty; }
+dialog label { display: flex; flex-direction: column; gap: 6px; font-size: 0.875rem; line-height: 1.25; color: var(--fg-3); }
+dialog .opt { opacity: 0.7; }
+dialog input, dialog textarea {
+	padding: 10px 12px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: var(--field);
+	color: var(--fg);
+	font: inherit;
+	font-size: 1rem;   /* 16px stops iOS zooming into the field */
+	resize: vertical;
+}
+dialog input:focus, dialog textarea:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+dialog .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }   /* honeypot for bots */
+dialog .status { margin: 0; min-height: 1.25rem; font-size: 0.875rem; line-height: 1.25; color: color-mix(in srgb, var(--fg) 70%, var(--bg)); }
+dialog .actions { display: flex; justify-content: flex-end; gap: 8px; }
+dialog .actions button {
+	padding: 8px 16px;
+	border: 1px solid currentColor;
+	border-radius: 8px;
+	background: var(--bg);
+	color: var(--fg);
+	font: inherit;
+	font-size: 0.875rem;
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+dialog .actions [type=submit] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+dialog .actions button:disabled { opacity: 0.5; cursor: default; }
+
+/* ==========================================================================
+   Blur-in: every block fades in from a soft blur, top to bottom (appear.js numbers them with --i)
+   ========================================================================== */
+.masthead > *, .about > p, .group h2, .group h3, .group .row, .setup .sub li, .contact-fab, .not-found > * {
+	animation: blur-in 0.8s var(--ease-out) calc(var(--i, 0) * 35ms) backwards;
+}
+dialog[open] { animation: blur-in 0.3s var(--ease-out); }
+dialog[open]::backdrop { animation: fade-in 0.3s var(--ease-out); }
+@keyframes blur-in {
+	from { opacity: 0; filter: blur(4px); transform: translateY(6px); }
+	to { opacity: 1; filter: none; transform: none; }
+}
+@keyframes fade-in { from { opacity: 0; } }

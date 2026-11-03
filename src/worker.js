@@ -20,15 +20,23 @@ export default {
 
 		const name = clean(body.name, 100).replace(/[\r\n]+/g, ' ');
 		const email = clean(body.email, 254);
+		const phone = clean(body.phone, 30); // optional
 		const message = clean(body.message, 5000);
+		const topic = body.topic === 'auctervia' ? 'auctervia' : 'contact';
 		if (!name || !message || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			return json({ error: 'Please fill in your name, a valid email and a message.' }, 400);
+		}
+		if (phone && !/^[\d\s()+.-]{5,30}$/.test(phone)) {
+			return json({ error: 'That phone number does not look right.' }, 400);
 		}
 		if (!env.RESEND_API_KEY) {
 			console.error('RESEND_API_KEY is not set');
 			return json({ error: 'Server not configured' }, 500);
 		}
 
+		const subject = topic === 'auctervia' ? `Auctervia enquiry from ${name}` : `New message from ${name}`;
+		const lines = [`From: ${name} <${email}>`];
+		if (phone) lines.push(`Phone: ${phone}`);
 		const res = await fetch('https://api.resend.com/emails', {
 			method: 'POST',
 			headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
@@ -36,8 +44,8 @@ export default {
 				from: env.CONTACT_FROM,
 				to: [env.CONTACT_TO],
 				reply_to: email,
-				subject: `New message from ${name}`,
-				text: `From: ${name} <${email}>\n\n${message}`
+				subject,
+				text: `${lines.join('\n')}\n\n${message}`
 			})
 		});
 		if (!res.ok) {

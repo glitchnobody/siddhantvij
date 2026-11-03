@@ -4,7 +4,6 @@ $(function () {
 	/* ==================== helpers ==================== */
 	const { PI, sin, cos, abs, min, max, floor, ceil, round, sqrt, hypot, atan2, exp, pow, log } = Math;
 	const TAU = PI * 2;
-	const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 		const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 	const lerp = (a, b, k) => a + (b - a) * k;
 	const smooth = (a, b, v) => { const k = clamp((v - a) / (b - a), 0, 1); return k * k * (3 - 2 * k); };
@@ -218,7 +217,7 @@ $(function () {
 	try { CSS.registerProperty({ name: '--r', syntax: '<length>', inherits: true, initialValue: '0px' }); radiusAnimatable = true; } catch (e) {} // lets the browser animate the reveal's radius
 	const FADE_MS = 420;
 	function setTheme(t, instant) {
-		if (theme && !calm && !instant) { oldLut = lut; fadeAt = performance.now(); } else oldLut = null;
+		if (theme && !instant) { oldLut = lut; fadeAt = performance.now(); } else oldLut = null;
 		theme = t; lut = luts(t);
 		if (onThemeChange) onThemeChange();
 		$('html').attr('data-theme', t);
@@ -232,7 +231,6 @@ $(function () {
 		if (switching) return;
 		sound.flip();
 		const next = theme === 'dark' ? 'light' : 'dark', root = document.documentElement;
-		if (calm) { setTheme(next, true); repaintNow(); return; }
 		if (!document.startViewTransition) { // no View Transitions: fall back to the dithered dissolve
 			root.classList.add('fade'); setTheme(next); setTimeout(() => root.classList.remove('fade'), 600);
 			return;
@@ -413,7 +411,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 	}
 	function drawGalaxy(G, dt) {
 		G.boost *= .97;
-		if (!calm) G.a += dt * (.035 + G.boost);
+		G.a += dt * (.035 + G.boost);
 		const c = cos(G.a), s = sin(G.a);
 		for (let i = 0; i < G.N; i++) {
 			const px = G.xs[i], py = G.ys[i], x = px * c - py * s, y = (px * s + py * c) * G.tilt;
@@ -447,7 +445,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 		for (const b of bodies) { if (b.key === 'planet') { b.frames = planets; b.spr = planets[0]; } else b.spr = b.key === 'moon' ? moon : moon2; }
 	}
 	function setupSky() {
-		SH = floor(clamp(innerHeight * .44, 260, 440) / skyScale);
+		SH = floor(380 / skyScale);   // the sky is always 380px tall
 		SW = ceil(document.documentElement.clientWidth / skyScale); SDW = min(SW, 1400); SOX = floor((SW - SDW) / 2); // the scene is composed for one fixed width; the space either side repeats its moons and planets
 		skyImg = frameFor(skyEl, skyCtx, SW, SH, skyScale);
 		ink = new Uint8Array(SW * SH);
@@ -464,7 +462,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 		}); });
 		skyArt();
 		ships = []; trail = []; sparks = []; meteor = null; nextMeteor = 4; nextShip = 1;
-		if (!calm) { spawnShip(true); spawnShip(true); }
+		spawnShip(true); spawnShip(true);
 	}
 	onThemeChange = () => { if (bodies) skyArt(); };
 	function spawnShip(anywhere) {
@@ -538,7 +536,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 			if (b.frames) { b.shimmer = max(0, b.shimmer - dt); b.spr = b.frames[b.shimmer ? floor(t * 10) % 4 : 0]; }
 			blit(ink, SW, SH, b.spr, b.x, b.y);
 		}
-		if (!calm && t > nextShip) { spawnShip(false); nextShip = t + rand(5, 14); }
+		if (t > nextShip) { spawnShip(false); nextShip = t + rand(5, 14); }
 		for (let i = ships.length - 1; i >= 0; i--) {
 			const sh = ships[i], d = SHIPS[sh.kind];
 			sh.boost *= .985;
@@ -564,7 +562,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 			if ((p.life -= dt) <= 0) trail.splice(i, 1);
 			else if (p.life > .3 || hash(i, floor(t * 12)) < .5) plot(ink, SW, SH, p.x, p.y, 2);
 		}
-		if (!calm && t > nextMeteor) { meteor = { x: SW * rand(.45, .95), y: rand(4, SH * .3), life: 0 }; nextMeteor = t + rand(6, 18); }
+		if (t > nextMeteor) { meteor = { x: SW * rand(.45, .95), y: rand(4, SH * .3), life: 0 }; nextMeteor = t + rand(6, 18); }
 		if (meteor) {
 			meteor.life += dt; meteor.x -= 170 * A * dt; meteor.y += 42 * A * dt;
 			const fade = min(1, meteor.life * 8) * (1 - meteor.life);
@@ -832,7 +830,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 			const pulse = sin(t * 1.7 + e.ph + i * 2.1), jx = off ? off(round(o.y * A)) : 0;
 			halo((sx + o.x) * A + jx, (sy + o.y) * A, (o.r * 2.6 + 3 + pulse * 1.2 + e.flare * 5) * A, .5 + .12 * pulse + e.flare * .7);
 		});
-		if (!calm && (e.emit -= dt) < 0) {
+		if ((e.emit -= dt) < 0) {
 			e.emit = rand(.5, 1.5);
 			const o = e.orbs[floor(rand(0, e.orbs.length))];
 			motes.push({ x: sx + o.x + rand(-o.r, o.r), y: sy + o.y - o.r, vx: rand(-3, 3), vy: rand(-9, -4), life: rand(1.4, 2.6) });
@@ -1125,7 +1123,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 				const near = pg && pg.in ? max(0, 1 - hypot(dx, dy * .75) / reach) : 0;
 				e.hov = lerp(e.hov, near, near > e.hov ? .05 : .018);
 				e.bend = lerp(e.bend, near * (dx > 0 ? -1 : 1) * min(6, s.uh * .1), .035);
-				const k = e.stiff || 1, amp = (calm ? 0 : .35 + e.hov * 2.4) * k, h = s.h, ph = e.ph, bend = e.bend * k, shake = calm ? 0 : e.shake * 5;
+				const k = e.stiff || 1, amp = (.35 + e.hov * 2.4) * k, h = s.h, ph = e.ph, bend = e.bend * k, shake = e.shake * 5;
 				offFn = j => {
 					const q = (h - 1 - j) / h;
 					return round((sin(t * .75 + ph + j * .03 / A) * amp + bend + sin(t * 34) * shake) * q * q * A);
@@ -1175,7 +1173,7 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 		$('canvas').attr('data-ready', '');
 	}
 	let last = 0, timer, width = 0;
-	const step = calm ? 200 : 33;
+	const step = 33;
 	function frame(ts) {
 		requestAnimationFrame(frame);
 		if (ts - last < step) return;
