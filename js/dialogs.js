@@ -1,3 +1,12 @@
+// Links that open the composer are buttons, not mailto: links: no href means no "mailto:" tooltip and no address in the status bar
+document.querySelectorAll('a[data-open]').forEach(a => { a.removeAttribute('href'); a.setAttribute('role', 'button'); a.tabIndex = 0; });
+document.addEventListener('keydown', e => { const a = e.target.closest && e.target.closest('a[data-open]'); if (a && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); a.click(); } });
+// On phones a drawer opens with nothing focused: no keyboard popping up and no highlighted field or close button
+const nativeShowModal = HTMLDialogElement.prototype.showModal;
+HTMLDialogElement.prototype.showModal = function () {
+	nativeShowModal.call(this);
+	if (matchMedia('(pointer: coarse), (max-width: 560px)').matches) { this.tabIndex = -1; this.focus({ preventScroll: true }); }
+};
 // Every <dialog> that has a form posts it to /api/contact (src/worker.js).
 // Anything with data-open="<dialog id>" opens that dialog; without JavaScript it stays a normal mailto: link.
 // One composer serves both openers: data-open="contact" and data-open="auctervia" only change the subtext, topic and prefilled subject.

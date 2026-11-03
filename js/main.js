@@ -199,7 +199,7 @@ $(function () {
 			if (on) api.btn();
 		});
 		// any other button or link gets the default click, except the light/dark one, which has its own
-		$(document).on('click', 'button:not(#theme):not(#sound), a[href]', () => api.btn());
+		$(document).on('click', 'button:not(#theme):not(#sound), a[href], a[data-open]', () => api.btn());
 		$(document).on('auxclick', 'a[href]', e => { if (e.button === 1) api.btn(); });   // a middle-click opens the link in a new tab, so it clicks too
 		label();
 		return api;
@@ -245,10 +245,9 @@ $(function () {
 		if (!soft) root.style.setProperty('--r', '99999px'); // no soft mask: leave the new layer fully visible and use the plain circle
 		vt.ready.then(() => {
 			const to = '::view-transition-new(root)';
-			if (!soft) return root.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] }, { duration: 900, easing: 'cubic-bezier(.65,0,.35,1)', pseudoElement: to });
-			// the new theme grows out of the click as a soft-edged bloom, and arrives a touch bright, like a light turning on
-			root.animate({ '--r': ['0px', r + 'px'] }, { duration: 1100, easing: 'cubic-bezier(.45,.05,.25,1)', pseudoElement: to });
-			root.animate({ filter: ['brightness(1.4)', 'brightness(1)'] }, { duration: 1100, easing: 'ease-out', pseudoElement: to });
+			if (!soft) return root.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] }, { duration: 900, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards', pseudoElement: to });
+			// the new theme grows out of the click as a soft-edged bloom
+			root.animate({ '--r': ['0px', r + 'px'] }, { duration: 1100, easing: 'cubic-bezier(.45,.05,.25,1)', fill: 'forwards', pseudoElement: to });
 		}).catch(() => {});
 		vt.finished.finally(() => { switching = false; });
 	}

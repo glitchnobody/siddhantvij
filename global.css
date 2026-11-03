@@ -391,7 +391,6 @@ dialog form { display: flex; flex-direction: column; gap: 14px; padding: 24px; }
 dialog .title { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.3; text-wrap: balance; }
 dialog .blurb { margin: -6px 0 0; font-size: 0.875rem; line-height: 1.4; color: var(--fg-3); text-wrap: pretty; }
 dialog label { display: flex; flex-direction: column; gap: 6px; font-size: 0.875rem; line-height: 1.25; color: var(--fg-3); }
-dialog .opt { opacity: 0.7; }
 dialog input, dialog textarea {
 	padding: 10px 12px;
 	border: 1px solid var(--line);
@@ -557,7 +556,8 @@ form[data-state=error] { animation: shake 0.35s var(--ease-out); }
 	.client { width: 32px; padding: 0; justify-content: center; }   /* phones: the link shrinks to its arrow so the pill fits */
 	.client span { display: none; }
 	.cc-pop { width: min(280px, calc(100vw - 80px)); }
-	.mrow .k { width: 52px; font-size: 0.875rem; }
+	.mrow { flex-wrap: wrap; row-gap: 4px; }
+	.mrow .k { width: 100%; font-size: 0.875rem; }   /* the label sits above its field */
 	.contact .x { top: 30px; }   /* clears the drawer handle */
 }
 
@@ -625,14 +625,10 @@ dialog.colophon .x:hover { background: transparent; color: var(--fg); }
 .embedded .mhead { display: none; }
 .embedded .msub { margin: 0 0 4px; font-size: 1.0625rem; font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; color: var(--fg); }
 
-/* product screenshots inside the experience drawer: a neutral gradient card with padding on one top corner, the crop bleeding off the other edges */
+/* product screenshots inside the experience drawer: rounded, full-width images */
 .exp .shots { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
-.exp .shot { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
-.exp .shot.tl { padding: 24px 0 0 24px; background: linear-gradient(135deg, color-mix(in srgb, var(--fg) 16%, var(--bg)), color-mix(in srgb, var(--fg) 4%, var(--bg))); }
-.exp .shot.tr { padding: 24px 24px 0 0; background: linear-gradient(225deg, color-mix(in srgb, var(--fg) 16%, var(--bg)), color-mix(in srgb, var(--fg) 4%, var(--bg))); }
+.exp .shot { margin: 0; overflow: hidden; border-radius: 12px; }
 .exp .shot img { display: block; width: 100%; height: auto; }
-.exp .shot.tl img { border-radius: 8px 0 0 0; }
-.exp .shot.tr img { border-radius: 0 8px 0 0; }
 
 @media (min-width: 561px) { dialog.exp { width: min(800px, 100vw); } }   /* the experience drawer is wider so the screenshots have room */
 
@@ -640,3 +636,6 @@ dialog.colophon .x:hover { background: transparent; color: var(--fg); }
 @media (max-width: 560px) {
 	dialog:not(.lightbox) { height: calc(var(--vvh, 100dvh) - 24px); overflow-y: auto; }
 }
+
+dialog:focus { outline: 0; }   /* a drawer focused as a whole on phones shows no ring */
+a[data-open] { cursor: pointer; }
