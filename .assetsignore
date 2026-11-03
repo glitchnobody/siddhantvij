@@ -1,0 +1,11 @@
+.env
+.env.*
+.dev.vars
+.git
+.gitignore
+.assetsignore
+.playwright-mcp
+src
+wrangler.jsonc
+node_modules
+.wrangler

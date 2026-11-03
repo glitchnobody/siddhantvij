@@ -192,7 +192,7 @@ $(function () {
 		};
 		const api = {};
 		Object.keys(fx).forEach(k => { api[k] = (...a) => run(() => fx[k](...a)); });
-		const label = () => $('#sound').text('sound: ' + (on ? 'on' : 'off')).attr('aria-pressed', on);
+		const label = () => $('#sound').attr('aria-label', 'Sound ' + (on ? 'on' : 'off')).attr('aria-pressed', on);
 		$('#sound').on('click', () => {
 			if (on) api.btn(); // goes out with the old state, so turning it off still clicks
 			on = !on; store.set('sound', on ? 'on' : 'off'); label();
@@ -222,7 +222,7 @@ $(function () {
 		theme = t; lut = luts(t);
 		if (onThemeChange) onThemeChange();
 		$('html').attr('data-theme', t);
-		$('#theme').text('theme: ' + t);
+		$('#theme').attr('aria-label', 'Theme: ' + t);
 		store.set('theme', t);
 	}
 	setTheme(store.get('theme') === 'light' ? 'light' : 'dark', true); // dark unless the visitor chose light before

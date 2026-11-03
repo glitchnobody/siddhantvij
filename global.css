@@ -3,7 +3,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
 html{overflow-y:scroll}
-body{position:relative;display:flex;flex-direction:column;min-height:100vh;background:var(--bg);color:var(--fg);font-family:'Instrument Sans',sans-serif;overflow-x:hidden}
+body{position:relative;display:flex;flex-direction:column;min-height:100vh;background:var(--bg);color:var(--fg);font-family:'Inter Tight',sans-serif;overflow-x:hidden}
 html.fade body{transition:background-color .4s,color .4s}
 /* theme switch: the page is snapshotted and the new theme is revealed as a growing circle (animated from JS) */
 ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
@@ -12,7 +12,6 @@ html.fade body{transition:background-color .4s,color .4s}
 /* Film grain, copied from nemaas.com */
 body::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background-image:url(img/noise.svg),url(img/noise.svg);background-repeat:repeat;background-size:140px 140px,280px 280px;background-position:0 0,70px 40px;opacity:.32;mix-blend-mode:screen;filter:brightness(.5) contrast(240%)}
 :root[data-theme=light] body::after{opacity:.14;mix-blend-mode:multiply;filter:none}
-header{position:fixed;top:12px;right:16px;z-index:2;display:flex;gap:8px}
 button{font:inherit;font-size:.8rem;color:var(--fg);background:var(--bg);border:1px solid currentColor;border-radius:999px;padding:4px 12px;cursor:pointer}
 @media (hover:hover){button:hover{color:var(--bg);background:var(--fg)}}
 canvas{display:block;flex:none;image-rendering:pixelated;opacity:0;transition:opacity .7s ease;touch-action:pan-y;-webkit-tap-highlight-color:transparent;user-select:none}
@@ -21,3 +20,49 @@ main{flex:1;width:100%;max-width:620px;margin:0 auto;padding:1.5rem 16px;line-he
 h1{font-weight:500;font-size:clamp(1.5rem,5vw,2.5rem);margin:0 0 1rem}
 p{margin:0 0 1rem}
 @media (prefers-reduced-motion:reduce){canvas,html.fade body{transition:none}}
+/* top + work sections */
+main{font-family:'Inter Tight',sans-serif;font-weight:300;padding-top:3rem;line-height:24px}
+h1{font-weight:600;font-size:16px;line-height:20px;margin:0}
+.rolerow{display:flex;align-items:center;justify-content:space-between;margin-bottom:54px}
+.role{color:color-mix(in srgb,var(--fg) 55%,var(--bg));margin:0}
+.top p{margin:0 0 16px}
+.top{margin-bottom:96px}
+main a{color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--fg) 14%,transparent);text-underline-offset:4px}
+main b{font-weight:500}
+h2{font-weight:400;font-size:14px;line-height:17.5px;color:color-mix(in srgb,var(--fg) 55%,var(--bg));margin:0 0 16px}
+.work ul{list-style:none;margin:0 -12px;padding:0}
+.work li a{display:flex;align-items:center;gap:16px;height:72px;padding:0 12px;border-radius:12px;text-decoration:none}
+@media (hover:hover){.work li a:hover{background:color-mix(in srgb,var(--fg) 5%,transparent)}}
+.ico{flex:none;width:32px;height:32px;display:grid;place-items:center;background:color-mix(in srgb,var(--fg) 6%,transparent);border:1px solid color-mix(in srgb,var(--fg) 8%,transparent);border-radius:8px;font-size:14px}
+.name{flex:1;font-weight:500}
+.tags,.yr{font-size:14px;line-height:17.5px;color:color-mix(in srgb,var(--fg) 55%,var(--bg))}
+.tags{margin-right:8px}
+@media (max-width:520px){.tags{display:none}}
+/* icon-only sound + theme controls: invisible background until hover */
+.ctrl{display:flex;gap:4px;margin-right:-8px}
+.ctrl button{display:grid;place-items:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:transparent;color:color-mix(in srgb,var(--fg) 55%,var(--bg))}
+@media (hover:hover){.ctrl button:hover{background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}}
+.ctrl button:focus-visible{outline:2px solid var(--fg)}
+#sound .off,#sound[aria-pressed=false] .on{display:none}
+#sound[aria-pressed=false] .off{display:block}
+#theme .sun{display:none}
+:root[data-theme=light] #theme .moon{display:none}
+:root[data-theme=light] #theme .sun{display:block}
+.ctrl svg{grid-area:1/1}
+.ctrl svg{width:20px;height:20px}
+.top .role{margin:0}
+#sky{-webkit-mask-image:linear-gradient(to bottom,#000 78%,transparent);mask-image:linear-gradient(to bottom,#000 78%,transparent)}
+/* contact modal */
+dialog{border:1px solid color-mix(in srgb,var(--fg) 12%,transparent);border-radius:16px;background:var(--bg);color:var(--fg);padding:0;width:min(440px,calc(100vw - 32px));font-family:'Inter Tight',sans-serif;font-weight:300}
+dialog::backdrop{background:rgb(0 0 0/.5)}
+dialog form{display:flex;flex-direction:column;gap:14px;padding:24px}
+dialog .title{margin:0;font-weight:600;font-size:16px}
+dialog label{display:flex;flex-direction:column;gap:6px;font-size:14px;color:color-mix(in srgb,var(--fg) 55%,var(--bg))}
+dialog input,dialog textarea{font:inherit;font-size:16px;color:var(--fg);background:color-mix(in srgb,var(--fg) 6%,transparent);border:1px solid color-mix(in srgb,var(--fg) 12%,transparent);border-radius:8px;padding:10px 12px;resize:vertical}
+dialog input:focus,dialog textarea:focus{outline:2px solid color-mix(in srgb,var(--fg) 40%,transparent);outline-offset:1px}
+dialog .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+dialog .status{margin:0;min-height:20px;font-size:14px;color:color-mix(in srgb,var(--fg) 70%,var(--bg))}
+dialog .actions{display:flex;justify-content:flex-end;gap:8px}
+dialog .actions button{font-size:14px;border-radius:8px;padding:8px 16px}
+dialog .actions button[type=submit]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+dialog .actions button:disabled{opacity:.5;cursor:default}

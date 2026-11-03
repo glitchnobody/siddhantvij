@@ -1,0 +1,10 @@
+{
+	"name": "siddhantvij",
+	"main": "src/worker.js",
+	"compatibility_date": "2026-11-01",
+	"assets": { "directory": ".", "binding": "ASSETS" },
+	"vars": {
+		"CONTACT_TO": "sid.work0001@gmail.com",
+		"CONTACT_FROM": "Website contact <userform@glitchnobody.com>"
+	}
+}

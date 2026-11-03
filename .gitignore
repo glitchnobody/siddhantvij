@@ -1,0 +1,6 @@
+.env
+.env.*
+.playwright-mcp/
+.dev.vars
+node_modules/
+.wrangler/
