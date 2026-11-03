@@ -1,6 +1,9 @@
 /* ==========================================================================
    Tokens
    ========================================================================== */
+/* self-hosted so nothing blocks rendering; the fallback is Arial scaled to Inter Tight's metrics so the swap does not move the text */
+@font-face { font-family: 'Inter Tight'; font-style: normal; font-weight: 200 700; font-display: swap; src: url(fonts/inter-tight-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Inter Tight Fallback'; src: local('Arial'), local('Helvetica'), local('Liberation Sans'); size-adjust: 96.7%; ascent-override: 100.18%; descent-override: 24.94%; line-gap-override: 0%; }
 :root {
 	--bg: #121212;
 	--fg: #fff;
@@ -12,8 +15,10 @@
 	--tint-strong: color-mix(in srgb, var(--fg) 14%, transparent);
 	--focus: color-mix(in srgb, var(--fg) 40%, transparent);
 	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+	--danger: #ff6369;   /* errors; 6:1 on the dark page */
 }
-:root[data-theme=light] { --bg: #eee; --fg: #000; }
+:root[data-theme=light] { --bg: #eee; --fg: #000; --danger: #c4262b; }   /* 5:1 on the light page */
 
 /* ==========================================================================
    Base
@@ -32,7 +37,7 @@ body {
 	min-height: 100vh;
 	background: var(--bg);
 	color: var(--fg);
-	font-family: 'Inter Tight', sans-serif;
+	font-family: 'Inter Tight', 'Inter Tight Fallback', sans-serif;
 	overflow-x: hidden;
 }
 html.fade body { transition: background-color 0.3s ease, color 0.3s ease; }  /* main.js adds .fade while the theme switches */
@@ -77,7 +82,7 @@ canvas {
 	user-select: none;
 }
 canvas[data-ready] { opacity: 1; filter: none; }
-#sky { mask-image: linear-gradient(to bottom, #000 78%, transparent); -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent); }
+#sky { height: 380px; mask-image: linear-gradient(to bottom, #000 78%, transparent); -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent); }
 
 /* ==========================================================================
    Typography
@@ -94,6 +99,9 @@ main {
 	min-width: 0;
 	overflow-wrap: break-word;   /* a very long word wraps instead of pushing the page wider */
 }
+::selection { background: var(--fg); color: var(--bg); }
+input, textarea { caret-color: var(--fg); }
+h1, h2, h3 { text-wrap: balance; }
 h1 { margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; color: var(--fg); text-wrap: balance; }
 h2, h3 { font-weight: 400; line-height: 1.25; color: var(--fg-3); }
 h2 { margin: 0 0 1rem; font-size: 0.875rem; }
@@ -180,6 +188,7 @@ main a {
 	transition: background-color 0.15s ease;
 }
 .experience .row { min-height: 4.5rem; padding: 0.75rem 10px; }
+button.row { width: calc(100% + 20px); border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 a.row { color: var(--fg); text-decoration: none; }
 
 .logo, .tile { width: 36px; height: 36px; border-radius: 9px; border: 1px solid var(--line); }
@@ -191,6 +200,7 @@ a.row { color: var(--fg); text-decoration: none; }
 .name { font-size: 1rem; font-weight: 500; line-height: 1.3; color: var(--fg); }
 .role { font-size: 0.875rem; font-weight: 400; line-height: 1.3; color: var(--fg-3); }
 .role a { color: inherit; }
+.rank { margin-bottom: -6px; font-size: 0.75rem; font-weight: 500; line-height: 1; letter-spacing: 0.04em; color: var(--fg-3); }
 .date { font-size: 0.875rem; font-weight: 400; line-height: 1.3; color: var(--fg-3); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: end; }
 @supports (text-box: trim-both cap alphabetic) {
 	.name, .role, .date { text-box: trim-both cap alphabetic; }  /* optically centres the text beside the 36px box */
@@ -204,13 +214,13 @@ a.row { color: var(--fg); text-decoration: none; }
 
 .has-cover { position: relative; }
 .cover { position: absolute; inset: 0; border-radius: 12px; }
-a.row:focus-visible, .cover:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+a.row:focus-visible, button.row:focus-visible, .cover:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 
 @media (hover: hover) and (pointer: fine) {
-	.row:is(a, .has-cover):hover { background: var(--tint); }
+	.row:is(a, button, .has-cover):hover { background: var(--tint); }
 	.row:is(a, .has-cover):hover .arrow { color: var(--fg); }
 	.chip:hover { background: var(--tint-strong); }
-	.contact-fab:hover { background: color-mix(in srgb, var(--fg) 8%, var(--bg)); }
+	.contact-fab:hover { background: color-mix(in srgb, var(--fg) 88%, var(--bg)); }
 	.button:hover { background: var(--bg); color: var(--fg); }
 	.ctrl button:hover { background: var(--tint); color: var(--fg); }
 	.copy:hover { background: var(--tint); color: var(--fg); }
@@ -256,6 +266,11 @@ a.row:focus-visible, .cover:focus-visible { outline: 2px solid var(--focus); out
 @keyframes copied-fade { 0% { opacity: 0; filter: blur(0); } 10% { opacity: 1; filter: blur(0); } 100% { opacity: 0; filter: blur(1.5px); } }
 
 /* ---- Current Setup ---- */
+.shot-open { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 8px; }
+.shot-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.setup .shot { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; margin-bottom: 1.5rem; border-radius: 8px; filter: grayscale(1) contrast(1.05); transition: filter 0.9s var(--ease-out), transform 0.9s var(--ease-out); }
+@media (hover: hover) { .setup .shot:hover { filter: grayscale(0) contrast(1); transform: scale(1.015); } }
+@media (hover: none) { .setup .shot { filter: none; } }  /* touch has no hover, so show it in colour */
 .setup h3.next { margin-top: 2rem; }
 .setup .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.5rem; }
 .setup .cols h3 { margin-top: 0; }
@@ -307,10 +322,10 @@ a.row:focus-visible, .cover:focus-visible { outline: 2px solid var(--focus); out
 	align-items: center;
 	gap: 8px;
 	padding: 10px 14px;
-	border: 1px solid var(--line);
+	border: 1px solid var(--fg);
 	border-radius: 12px;
-	background: var(--bg);
-	color: var(--fg);
+	background: var(--fg);   /* inverted: white in dark mode, black in light mode */
+	color: var(--bg);
 	font-size: 0.875rem;
 	font-weight: 500;
 	line-height: 1.25;
@@ -354,6 +369,24 @@ dialog {
 	font-weight: 300;
 }
 dialog::backdrop { background: rgb(0 0 0 / 0.5); }
+dialog.agent { width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 24px; overflow: auto; }
+dialog.agent .title { padding-right: 44px; }
+dialog.agent .blurb { margin: 6px 0 0; }
+dialog.agent a { color: inherit; }
+dialog.agent pre { margin: 16px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 0.8125rem/1.6 ui-monospace, 'SF Mono', Menlo, monospace; color: var(--fg-2); }
+dialog.lightbox { width: min(1200px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: hidden; border-radius: 12px; background: none; border: 0; }
+dialog.lightbox::backdrop { background: rgb(0 0 0 / 0.8); backdrop-filter: blur(6px); }
+/* open and close animate through transitions (the dialog stays rendered until the close finishes) */
+dialog.lightbox, dialog.lightbox::backdrop { opacity: 0; transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out), overlay 0.25s allow-discrete, display 0.25s allow-discrete; }
+dialog.lightbox { transform: scale(0.96); }
+dialog.lightbox[open] { opacity: 1; transform: none; animation: none; }
+dialog.lightbox[open]::backdrop { opacity: 1; animation: none; }
+@starting-style { dialog.lightbox[open] { opacity: 0; transform: scale(0.96); } dialog.lightbox[open]::backdrop { opacity: 0; } }
+.lightbox img { display: block; width: 100%; height: auto; max-height: calc(100vh - 32px); object-fit: contain; border-radius: 12px; }
+dialog .x { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid rgb(255 255 255 / 0.2); border-radius: 8px; background: #121212; color: #fff; cursor: pointer; transition: background-color 0.2s; }
+dialog .x svg { width: 20px; height: 20px; }
+dialog .x:hover { background: #2a2a2a; }
+dialog .x:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 dialog form { display: flex; flex-direction: column; gap: 14px; padding: 24px; }
 dialog .title { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.3; text-wrap: balance; }
 dialog .blurb { margin: -6px 0 0; font-size: 0.875rem; line-height: 1.4; color: var(--fg-3); text-wrap: pretty; }
@@ -391,7 +424,7 @@ dialog .actions button:disabled { opacity: 0.5; cursor: default; }
    Blur-in: every block fades in from a soft blur, top to bottom (appear.js numbers them with --i)
    ========================================================================== */
 .masthead > *, .about > p, .group h2, .group h3, .group .row, .setup .sub li, .contact-fab, .not-found > * {
-	animation: blur-in 0.8s var(--ease-out) calc(var(--i, 0) * 35ms) backwards;
+	animation: blur-in 0.4s var(--ease-out) calc(var(--i, 0) * 20ms) backwards;
 }
 dialog[open] { animation: blur-in 0.3s var(--ease-out); }
 dialog[open]::backdrop { animation: fade-in 0.3s var(--ease-out); }
@@ -400,3 +433,210 @@ dialog[open]::backdrop { animation: fade-in 0.3s var(--ease-out); }
 	to { opacity: 1; filter: none; transform: none; }
 }
 @keyframes fade-in { from { opacity: 0; } }
+
+/* ==========================================================================
+   Phones: every dialog becomes a bottom drawer that slides up (and back down on close)
+   ========================================================================== */
+@media (max-width: 560px) {
+	dialog, dialog.agent, dialog.lightbox {
+		width: 100%; max-width: 100%; margin: auto 0 var(--kb, 0px);
+		max-height: calc(var(--vvh, 100dvh) - 24px);   /* --vvh and --kb follow the on-screen keyboard (dialogs.js) */
+		overscroll-behavior: contain;
+		border: 0; border-top: 1px solid var(--line); border-radius: 16px 16px 0 0;
+		opacity: 1; transform: translateY(100%);
+		transition: transform 0.35s var(--ease-drawer), overlay 0.35s allow-discrete, display 0.35s allow-discrete;
+	}
+	dialog[open], dialog.lightbox[open] { opacity: 1; transform: none; animation: none; }
+	dialog::backdrop { opacity: 0; transition: opacity 0.35s var(--ease-out), overlay 0.35s allow-discrete, display 0.35s allow-discrete; }
+	dialog[open]::backdrop { opacity: 1; animation: none; }
+	@starting-style {
+		dialog[open], dialog.lightbox[open] { opacity: 1; transform: translateY(100%); }
+		dialog[open]::backdrop { opacity: 0; }
+	}
+	dialog:not(.lightbox)::before { content: ""; display: block; width: 36px; height: 4px; margin: 8px auto 0; border-radius: 2px; background: var(--tint-strong); }  /* drag-handle look */
+	dialog form { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+	dialog.agent { padding: 8px 24px calc(24px + env(safe-area-inset-bottom)); }
+	dialog.agent::before { margin: 0 auto 16px; }
+	dialog.lightbox { background: var(--bg); }
+	.lightbox img { max-height: calc(var(--vvh, 100dvh) - 24px); border-radius: 16px 16px 0 0; }
+}
+
+/* ==========================================================================
+   Contact dialog: laid out like an email composer (header, From / To / Phone rows, body, Send)
+   ========================================================================== */
+dialog form { position: relative; }
+dialog.contact { width: min(600px, calc(100vw - 32px)); border-radius: 20px; overflow: visible; }   /* visible so the country list can open past the card edge */
+dialog.contact form { padding: 24px; gap: 12px; }
+.mhead { display: flex; align-items: flex-start; gap: 10px; padding-right: 44px; margin-bottom: 4px; }
+.mhead .hico { flex: none; width: 22px; height: 22px; margin-top: 1px; color: var(--fg); }
+.mtxt { min-width: 0; }
+.contact .msub { margin: -6px 0 4px; font-size: 0.875rem; line-height: 1.4; color: var(--fg-3); text-wrap: pretty; }
+.contact .mhead .title { padding: 0; font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; }
+.contact .x { top: 18px; right: 18px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: var(--fg-3); }
+.contact .x:hover { background: transparent; color: var(--fg); }
+.mrow { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.mrow .k { flex: none; width: 60px; font-size: 0.9375rem; color: var(--fg-3); }
+.mrow > input { min-width: 0; flex: 1; height: 40px; padding: 0 12px; border: 1px solid transparent; border-radius: 8px; background: var(--tint); color: var(--fg); font: inherit; font-size: 1rem; outline: 0; transition: border-color 0.15s ease, background-color 0.15s ease; }
+.mrow > input:focus, .contact .body:focus { outline: 0; }
+.mrow > input:focus { border-color: var(--focus); background: var(--field); }
+.mrow > input::placeholder, .contact .body::placeholder { color: var(--fg-3); opacity: 1; }
+
+/* the recipient chip, in the same style as the pills on the home page */
+.pill { display: inline-flex; align-items: center; gap: 8px; min-width: 0; height: 32px; padding: 0 4px 0 10px; border-radius: 8px; background: var(--tint); font-size: 0.9375rem; font-weight: 500; color: var(--fg); }
+.pill .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill .av { flex: none; width: 15px; height: 15px; color: var(--fg-3); }
+.pill .copy { flex: none; width: 24px; height: 24px; border-radius: 6px; }
+.pill .copy svg { width: 15px; height: 15px; }
+.client { margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 8px; background: var(--tint); color: var(--fg-2); font-size: 0.9375rem; font-weight: 500; text-decoration: none; white-space: nowrap; transition: background-color 0.15s ease, color 0.15s ease; }
+.client svg { width: 14px; height: 14px; }
+@media (hover: hover) { .client:hover { background: var(--tint-strong); color: var(--fg); } }
+.client:focus-visible { outline: 2px solid var(--focus); }
+
+/* country picker */
+.cc { position: relative; flex: none; }
+.cc-btn { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 8px 0 12px; border: 1px solid transparent; border-radius: 8px; background: var(--tint); color: var(--fg); font: inherit; font-size: 1rem; cursor: pointer; transition: border-color 0.15s ease; }
+.cc-btn:focus-visible, .cc-btn[aria-expanded=true] { outline: 0; border-color: var(--focus); }
+.cc-btn .fl { font-size: 1.125rem; line-height: 1; }
+.cc-btn .chev { flex: none; width: 18px; height: 18px; color: var(--fg-3); transition: transform 0.2s var(--ease-out); }
+.cc-btn[aria-expanded=true] .chev { transform: rotate(180deg); }
+.cc-pop { position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; display: flex; flex-direction: column; width: 280px; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); box-shadow: 0 12px 32px rgb(0 0 0 / 0.35); }
+.cc-pop[hidden] { display: none; }
+.contact .cc-q { height: 36px; margin: 0 0 6px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); font-size: 0.9375rem; }
+.contact .cc-q:focus { outline: 0; border-color: var(--focus); }
+.cc-q::-webkit-search-cancel-button { display: none; }
+.cc-pop ul { margin: 0; padding: 0; list-style: none; max-height: 232px; overflow-y: auto; overscroll-behavior: contain; }
+.cc-pop li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; font-size: 0.9375rem; line-height: 1.2; color: var(--fg-2); cursor: pointer; }
+.cc-pop li .fl { flex: none; width: 22px; font-size: 1.125rem; text-align: center; }
+.cc-pop li .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-pop li .dc { flex: none; color: var(--fg-3); font-variant-numeric: tabular-nums; }
+.cc-pop li[aria-selected=true] { color: var(--fg); font-weight: 500; }
+.cc-pop li.on, .cc-pop li:hover { background: var(--tint); }
+.cc-pop li.none { justify-content: center; color: var(--fg-3); cursor: default; }
+.cc-pop li.none:hover { background: none; }
+
+.contact .body { display: block; width: 100%; min-height: 180px; margin-top: 4px; padding: 16px 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--fg); font: inherit; font-size: 1rem; line-height: 1.6; resize: none; outline: 0; }
+.contact .status { margin: 0; padding: 0; }
+.contact .status:empty { display: none; }
+.contact .actions { justify-content: space-between; align-items: center; padding: 16px 0 env(safe-area-inset-bottom); border-top: 1px solid var(--line); }
+.social { display: flex; align-items: center; gap: 2px; min-width: 0; font-size: 0.875rem; color: var(--fg-3); }
+.social span { margin-right: 6px; }
+.social a { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; color: var(--fg-2); transition: background-color 0.15s ease, color 0.15s ease; }
+.social a svg { width: 18px; height: 18px; }
+@media (hover: hover) { .social a:hover { background: var(--tint); color: var(--fg); } }
+.social a:focus-visible { outline: 2px solid var(--focus); }
+.contact .actions button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 24px; border-radius: 8px; font-size: 1rem; font-weight: 500; }
+
+/* invalid or empty fields: red outline, red text, and the placeholder turns into the error (dialogs.js) */
+.bad, .mrow > input.bad:focus { border-color: var(--danger) !important; color: var(--danger); }
+.mrow > input.bad::placeholder, .contact .body.bad::placeholder, dialog input.bad::placeholder, dialog textarea.bad::placeholder { color: var(--danger); }
+.contact .body.bad { outline: 1px solid var(--danger); outline-offset: -1px; border-radius: 8px; }
+dialog input.bad, dialog textarea.bad { border-color: var(--danger); }
+
+/* loading: spinner in the button while the request is out */
+form[data-state=loading] [type=submit]::before { content: ""; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+form[data-state=loading] input, form[data-state=loading] textarea, form[data-state=loading] .cc { opacity: 0.6; pointer-events: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* error: a red notice above the button, which becomes "Try again" */
+form[data-state=error] .status, form[data-state=invalid] .status { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--danger); border-radius: 8px; background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+form[data-state=error] .status::before, form[data-state=invalid] .status::before { content: "!"; flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--danger); color: var(--bg); font-size: 0.6875rem; font-weight: 700; }
+form[data-state=error] { animation: shake 0.35s var(--ease-out); }
+@keyframes shake { 20% { transform: translateX(-6px); } 50% { transform: translateX(5px); } 80% { transform: translateX(-2px); } }
+
+/* success: the composer is replaced by a confirmation */
+.contact .sent { display: none; flex-direction: column; align-items: center; gap: 6px; padding: 32px 0; text-align: center; }
+.contact .sent .title { padding: 0; font-size: 1rem; }
+.contact .sent .blurb { margin: 0; }
+.contact .ok { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 8px; border-radius: 50%; background: var(--fg); color: var(--bg); animation: pop-in 0.4s var(--ease-out); }
+.contact .ok svg { width: 24px; height: 24px; }
+@keyframes pop-in { from { transform: scale(0.5); opacity: 0; } }
+.contact form[data-state=success] > :not(.sent):not(.mhead) { display: none; }
+.contact form[data-state=success] .sent { display: flex; }
+@media (max-width: 560px) {
+	dialog.contact { width: 100%; border-radius: 20px 20px 0 0; }
+	.client { width: 32px; padding: 0; justify-content: center; }   /* phones: the link shrinks to its arrow so the pill fits */
+	.client span { display: none; }
+	.cc-pop { width: min(280px, calc(100vw - 80px)); }
+	.mrow .k { width: 52px; font-size: 0.875rem; }
+	.contact .x { top: 30px; }   /* clears the drawer handle */
+}
+
+/* ==========================================================================
+   Final pass: press feedback, popover origin, skip link
+   ========================================================================== */
+:is(.ctrl button, .contact-fab, dialog .actions button, .cc-btn, .client, .social a, .button, .copy) { transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.16s var(--ease-out); }
+:is(.ctrl button, .contact-fab, dialog .actions button, .cc-btn, .client, .social a, .button, .copy):active { transform: scale(0.97); }
+.cc-pop { transform-origin: top left; animation: pop-open 0.16s var(--ease-out); }
+@keyframes pop-open { from { opacity: 0; transform: scale(0.96) translateY(-4px); } }
+dialog.agent .x { border: 0; background: transparent; color: var(--fg-3); }
+dialog.agent .x:hover { background: transparent; color: var(--fg); }
+.skip { position: absolute; z-index: 100; top: -56px; left: 16px; padding: 8px 14px; border-radius: 8px; background: var(--fg); color: var(--bg); font-weight: 500; text-decoration: none; transition: top 0.16s var(--ease-out); }
+.skip:focus { top: 12px; }
+
+/* ==========================================================================
+   Footer and colophon (a side drawer on desktop, the bottom drawer on phones)
+   ========================================================================== */
+.foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.875rem; color: var(--fg-3); }
+.foot p { margin: 0; }
+.colo { padding: 4px 0; border: 0; background: none; color: var(--fg-2); font: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--fg-3); cursor: pointer; transition: color 0.15s ease, text-decoration-color 0.15s ease; }
+@media (hover: hover) { .colo:hover { color: var(--fg); text-decoration-color: var(--fg); } }
+.colo:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+
+dialog.colophon { padding: 24px; overflow-y: auto; overscroll-behavior: contain; }
+dialog.colophon .title { padding-right: 44px; font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.02em; }
+dialog.colophon .blurb { margin: 4px 0 0; }
+dialog.colophon .x { top: 18px; right: 18px; border: 0; background: transparent; color: var(--fg-3); }
+dialog.colophon .x:hover { background: transparent; color: var(--fg); }
+.colophon h3 { margin: 28px 0 10px; font-size: 1.0625rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; color: var(--fg); }
+.colophon h3 ~ h3 { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }   /* a rule between sections */
+.colophon p:not(.title) { margin: 0 0 14px; font-size: 1rem; font-weight: 350; line-height: 1.7; letter-spacing: 0.005em; color: var(--fg-2); text-wrap: pretty; }   /* light text on dark: a touch more weight, leading and tracking */
+.colophon .tech { display: flex; flex-wrap: wrap; gap: 8px; }
+.colophon .chip { height: 28px; padding: 0 10px; border-radius: 8px; font-size: 0.875rem; }
+.colophon p .chip { display: inline; height: auto; padding: 0 6px; border-radius: 6px; font-size: inherit; line-height: inherit; vertical-align: baseline; }   /* in prose the pill must not stretch the line */
+.colophon .chip img { flex: none; width: 14px; height: 14px; image-rendering: pixelated; }
+.colophon p .chip img { margin-right: 6px; vertical-align: -2px; }
+@media (hover: hover) { .colophon a.chip:hover { background: var(--tint-strong); } }
+@media (min-width: 561px) {
+	dialog.colophon { width: min(550px, 100vw); height: 100dvh; max-height: 100dvh; margin: 0 0 0 auto; border-width: 0 0 0 1px; border-radius: 0; opacity: 1; transform: translateX(100%); transition: transform 0.4s var(--ease-drawer), overlay 0.4s allow-discrete, display 0.4s allow-discrete; }
+	dialog.colophon[open] { transform: none; animation: none; }
+	dialog.colophon::backdrop { opacity: 0; transition: opacity 0.4s var(--ease-out), overlay 0.4s allow-discrete, display 0.4s allow-discrete; }
+	dialog.colophon[open]::backdrop { opacity: 1; animation: none; }
+	@starting-style { dialog.colophon[open] { transform: translateX(100%); } dialog.colophon[open]::backdrop { opacity: 0; } }
+}
+
+/* Experience drawer: reuses the colophon side drawer */
+.exp .rhead { display: flex; align-items: center; gap: 14px; padding: 0 44px 20px 0; border-bottom: 1px solid var(--line); }
+.exp .rhead .logo { flex: none; }
+.exp .rhead .title { padding: 0; }
+.exp .rline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.exp .rline .k { flex: none; width: 96px; font-size: 0.9375rem; color: var(--fg-3); }
+.exp .rline .chip { height: 28px; padding: 0 10px; border-radius: 8px; font-size: 0.875rem; }
+.exp .rbody { margin-top: 0; }
+.exp .lede { margin-top: 24px; }
+.exp .rbody > h3:first-child { margin-top: 24px; }
+.exp ul { margin: 0; padding: 0 0 0 1.1em; list-style: disc; }
+.exp li { margin: 0 0 8px; padding-left: 4px; font-size: 1rem; font-weight: 350; line-height: 1.65; letter-spacing: 0.005em; color: var(--fg-2); text-wrap: pretty; }
+.exp li::marker { color: var(--fg-3); }
+@media (max-width: 560px) { dialog.colophon .x { top: 30px; } }   /* clears the drawer handle */
+
+/* the contact form inside the Auctervia drawer */
+.embedded { margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--line); }
+.embedded form { padding: 0; gap: 12px; }
+.embedded .mhead { display: none; }
+.embedded .msub { margin: 0 0 4px; font-size: 1.0625rem; font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; color: var(--fg); }
+
+/* product screenshots inside the experience drawer: a neutral gradient card with padding on one top corner, the crop bleeding off the other edges */
+.exp .shots { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
+.exp .shot { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
+.exp .shot.tl { padding: 24px 0 0 24px; background: linear-gradient(135deg, color-mix(in srgb, var(--fg) 16%, var(--bg)), color-mix(in srgb, var(--fg) 4%, var(--bg))); }
+.exp .shot.tr { padding: 24px 24px 0 0; background: linear-gradient(225deg, color-mix(in srgb, var(--fg) 16%, var(--bg)), color-mix(in srgb, var(--fg) 4%, var(--bg))); }
+.exp .shot img { display: block; width: 100%; height: auto; }
+.exp .shot.tl img { border-radius: 8px 0 0 0; }
+.exp .shot.tr img { border-radius: 0 8px 0 0; }
+
+@media (min-width: 561px) { dialog.exp { width: min(800px, 100vw); } }   /* the experience drawer is wider so the screenshots have room */
+
+/* Phones: drawers always open at full height (the image lightbox keeps fitting its picture) */
+@media (max-width: 560px) {
+	dialog:not(.lightbox) { height: calc(var(--vvh, 100dvh) - 24px); overflow-y: auto; }
+}

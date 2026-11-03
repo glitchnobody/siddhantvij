@@ -6,17 +6,16 @@
 	<meta name="robots" content="noindex">
 	<title>Page not found &mdash; Siddhant Vij</title>
 	<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200..700&display=swap" rel="stylesheet">
+	<link rel="preload" href="/fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin>
 	<!-- apply the saved theme before first paint so the page never flashes the wrong colours -->
 	<script>try{if(localStorage.getItem("theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
 	<link rel="stylesheet" href="/global.css">
 </head>
 <body>
+	<a class="skip" href="#main">Skip to content</a>
 	<canvas id="sky" role="img" aria-label="A starry sky with a rotating galaxy, a ringed planet and drifting spaceships. Clicking the galaxy switches between dark and light mode"></canvas>
 
-	<main class="not-found">
+	<main id="main" class="not-found">
 		<h1>404</h1>
 		<p>The page you are looking for does not exist, please check the link again.</p>
 		<a class="button" href="/">Go to home</a>

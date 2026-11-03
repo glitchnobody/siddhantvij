@@ -1,10 +1,21 @@
 const json = (body, status = 200) =>
 	new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+const AGENTS = /GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|Claude-SearchBot|anthropic-ai|PerplexityBot|Perplexity-User|CCBot|Bytespider|Meta-ExternalAgent|Applebot-Extended|cohere-ai|DuckAssistBot|MistralAI-User/i;
 const clean = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 
 export default {
 	async fetch(req, env) {
 		const url = new URL(req.url);
+		if (url.pathname === '/' && req.method === 'GET') {
+			// agents get the markdown view of the page; search engine crawlers (Googlebot, Bingbot) get the normal page
+			const agent = AGENTS.test(req.headers.get('user-agent') || '') || /text\/markdown/.test(req.headers.get('accept') || '');
+			const res = agent ? await env.ASSETS.fetch(new URL('/agent.md', url)) : await env.ASSETS.fetch(req);
+			const out = new Response(res.body, res);
+			out.headers.set('vary', 'User-Agent, Accept');
+			if (agent) out.headers.set('content-type', 'text/markdown; charset=utf-8');
+			return out;
+		}
+		if (url.pathname === '/api/country') return new Response(JSON.stringify({ country: req.cf?.country || null }), { headers: { 'content-type': 'application/json', 'cache-control': 'private, no-store' } });
 		if (url.pathname !== '/api/contact') return env.ASSETS.fetch(req);
 		if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
@@ -22,6 +33,7 @@ export default {
 		const email = clean(body.email, 254);
 		const phone = clean(body.phone, 30); // optional
 		const message = clean(body.message, 5000);
+		const topicLine = clean(body.subject, 150).replace(/[\r\n]+/g, ' '); // optional, shown in the email subject
 		const topic = body.topic === 'auctervia' ? 'auctervia' : 'contact';
 		if (!name || !message || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			return json({ error: 'Please fill in your name, a valid email and a message.' }, 400);
@@ -34,8 +46,9 @@ export default {
 			return json({ error: 'Server not configured' }, 500);
 		}
 
-		const subject = topic === 'auctervia' ? `Auctervia enquiry from ${name}` : `New message from ${name}`;
+		const subject = topicLine ? `${topicLine} (from ${name})` : topic === 'auctervia' ? `Auctervia enquiry from ${name}` : `New message from ${name}`;
 		const lines = [`From: ${name} <${email}>`];
+		if (topic === 'auctervia') lines.push('Topic: Auctervia');
 		if (phone) lines.push(`Phone: ${phone}`);
 		const res = await fetch('https://api.resend.com/emails', {
 			method: 'POST',

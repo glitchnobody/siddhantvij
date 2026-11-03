@@ -129,64 +129,65 @@ $(function () {
 
 	/* ==================== sound: click effects only, synthesised, on by default ==================== */
 	const sound = (function () {
-		let ctx, master, noiseBuf, on = store.get('sound') !== 'off';
+		let ctx, master, on = store.get('sound') !== 'off';
 		function init() {
 			if (ctx) return;
 			const AC = window.AudioContext || window.webkitAudioContext;
 			if (!AC) return;
 			ctx = new AC();
 			master = ctx.createGain(); master.gain.value = .55; master.connect(ctx.destination);
-			noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-			const d = noiseBuf.getChannelData(0);
-			for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
 		}
-		// every effect goes through run(): nothing plays when muted or when the tab is hidden
+		// every effect goes through run(): nothing plays when muted
 		function run(fn) {
-			if (!on || document.hidden) return;
+			if (!on) return;
 			init();
 			if (!ctx) return;
 			if (ctx.state === 'running') fn();
-			else ctx.resume().then(() => { if (on && !document.hidden) fn(); }).catch(() => {});
+			else ctx.resume().then(() => { if (on) fn(); }).catch(() => {});
 		}
-		document.addEventListener('visibilitychange', () => { // a hidden tab goes silent immediately, even mid-effect
-			if (!ctx) return;
-			if (document.hidden) ctx.suspend(); else if (on) ctx.resume();
-		});
-		function blip(f1, f2, dur, vol, type, delay) {
-			const t = ctx.currentTime + (delay || 0), o = ctx.createOscillator(), g = ctx.createGain();
-			o.type = type || 'sine';
-			o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
-			g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-			o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .02);
+		// Samples are Kenney's CC0 UI sounds from soundcn.xyz (btn.mp3 is click-003), peak-normalised so they sit at the same level.
+		// They are fetched once, decoded on first use and cached; `rate` shifts the pitch for a little variety.
+		const G = .25;   // one gain for every effect; a few short ones get a nudge below
+		const raw = {}, decoded = {};
+		if (on) (window.requestIdleCallback || setTimeout)(() => ['btn', 'theme-light', 'theme-dark', 'twinkle', 'whoosh', 'beam', 'boom', 'chord', 'sparkle', 'thud', 'puff', 'pop', 'blipup'].forEach(n => bytes(n).catch(() => {})));  // ~50 KB, so the first click has no delay
+		const bytes = n => raw[n] || (raw[n] = fetch('sounds/' + n + '.mp3').then(r => r.arrayBuffer()));
+		const load = n => decoded[n] || (decoded[n] = bytes(n).then(ab => ctx.decodeAudioData(ab)));
+		function play(n, vol, rate) {
+			load(n).then(buf => {
+				if (!on) return;
+				const s = ctx.createBufferSource(), g = ctx.createGain();
+				s.buffer = buf; s.playbackRate.value = rate || 1; g.gain.value = G * (vol || 1);
+				s.connect(g); g.connect(master); s.start();
+			}).catch(() => {});
 		}
-		function noise(f0, f1, dur, vol) {
-			const t = ctx.currentTime, s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-			s.buffer = noiseBuf; f.type = 'bandpass'; f.Q.value = 2;
-			f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
-			g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(vol, t + dur * .4); g.gain.linearRampToValueAtTime(.0001, t + dur);
-			s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + dur);
-		}
-		const notes = [523, 587, 659, 784, 880, 1047, 1175, 1319];
 		const fx = {
-			btn() { blip(560, 380, .06, .06, 'triangle'); }, // the default button click
-			flip() { blip(300, 820, .14, .05); blip(1320, 1320, .18, .015, 'sine', .06); noise(400, 2400, .16, .02); }, // light switch: the galaxy and the theme button share it
-			twinkle() { const f = notes[floor(rand(3, 8))] * 2; blip(f, f, .28, .025); blip(f * 1.5, f * 1.5, .2, .012, 'sine', .05); },
-			whoosh() { noise(250, 1100, .4, .035); },
-			beam() { blip(220, 700, .22, .03); blip(700, 300, .22, .03, 'sine', .2); },
-			boom() { blip(140, 45, .26, .08); noise(400, 100, .18, .035); },
-			chord() { [262, 330, 392].forEach((f, i) => blip(f, f, .5, .022, 'sine', i * .04)); },
-			sparkle(n) { for (let i = 0; i < 3; i++) { const f = notes[(n + i * 2) % 8] * 2; blip(f, f, .22, .028, 'sine', i * .045); } },
-			thud() { blip(120, 50, .18, .08); noise(300, 100, .1, .03); },
-			puff() { noise(900, 350, .12, .03); },
-			pop() { blip(260, 520, .1, .05, 'triangle'); },
-			blipUp() { blip(500, 1300, .12, .03, 'square'); },
-			meow() {
-				const t = ctx.currentTime, o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain(), b = rand(520, 640);
-				o.type = 'triangle'; f.type = 'bandpass'; f.Q.value = 2;
-				o.frequency.setValueAtTime(b, t); o.frequency.linearRampToValueAtTime(b * 1.45, t + .09); o.frequency.exponentialRampToValueAtTime(b * .75, t + .26);
-				f.frequency.setValueAtTime(900, t); f.frequency.linearRampToValueAtTime(1700, t + .1); f.frequency.linearRampToValueAtTime(800, t + .26);
-				g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .03); g.gain.exponentialRampToValueAtTime(.0001, t + .28);
-				o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t + .3);
+			btn() { play('btn', 1.2); },                                      // the default button click
+			flip(light) { play(light ? 'theme-light' : 'theme-dark'); },        // light switch: the galaxy and the theme button share it
+			twinkle() { play('twinkle', 1, rand(.9, 1.5)); },
+			whoosh() { play('whoosh'); },
+			beam() { play('beam'); },
+			boom() { play('boom', 1.2); },
+			chord() { play('chord'); },
+			sparkle(n) { play('sparkle', 1, 1 + n * .05); },
+			thud() { play('thud', 1.2); },
+			puff() { play('puff'); },
+			pop() { play('pop'); },
+			blipUp() { play('blipup'); },
+			meow() { // no cat in the sound library, so this is synthesised: a gliding buzz through two sliding vowel filters
+				const t = ctx.currentTime, end = t + .55, b = rand(520, 620);
+				const o = ctx.createOscillator(), lfo = ctx.createOscillator(), vib = ctx.createGain(), mix = ctx.createGain(), out = ctx.createGain();
+				o.type = 'sawtooth';
+				o.frequency.setValueAtTime(b * .85, t); o.frequency.exponentialRampToValueAtTime(b * 1.5, t + .16); o.frequency.exponentialRampToValueAtTime(b * 1.2, t + .3); o.frequency.exponentialRampToValueAtTime(b * .7, end);
+				lfo.frequency.value = 6; vib.gain.value = b * .025; lfo.connect(vib); vib.connect(o.frequency);
+				[[350, 800, 1], [2300, 1100, .6]].forEach(([from, to, vol]) => { // "ee" sliding to "ow"
+					const f = ctx.createBiquadFilter(), g = ctx.createGain();
+					f.type = 'bandpass'; f.Q.value = 7; g.gain.value = vol;
+					f.frequency.setValueAtTime(from, t); f.frequency.linearRampToValueAtTime(from, t + .12); f.frequency.linearRampToValueAtTime(to, t + .4);
+					o.connect(f); f.connect(g); g.connect(mix);
+				});
+				out.gain.setValueAtTime(.0001, t); out.gain.exponentialRampToValueAtTime(.5, t + .05); out.gain.setValueAtTime(.5, t + .3); out.gain.exponentialRampToValueAtTime(.0001, end);
+				mix.connect(out); out.connect(master);
+				o.start(t); lfo.start(t); o.stop(end + .02); lfo.stop(end + .02);
 			}
 		};
 		const api = {};
@@ -197,8 +198,9 @@ $(function () {
 			on = !on; store.set('sound', on ? 'on' : 'off'); label();
 			if (on) api.btn();
 		});
-		// any other button gets the default click, except the light/dark one, which has its own
-		$(document).on('click', 'button:not(#theme):not(#sound)', () => api.btn());
+		// any other button or link gets the default click, except the light/dark one, which has its own
+		$(document).on('click', 'button:not(#theme):not(#sound), a[href]', () => api.btn());
+		$(document).on('auxclick', 'a[href]', e => { if (e.button === 1) api.btn(); });   // a middle-click opens the link in a new tab, so it clicks too
 		label();
 		return api;
 	})();
@@ -229,8 +231,8 @@ $(function () {
 	function repaintNow() { const t = performance.now() / 1000; drawSky(t, 0); drawGround(t, 0); } // one fresh frame in the new colours
 	function switchTheme(x, y) { // x, y: where the reveal starts, in viewport pixels
 		if (switching) return;
-		sound.flip();
 		const next = theme === 'dark' ? 'light' : 'dark', root = document.documentElement;
+		sound.flip(next === 'light');
 		if (!document.startViewTransition) { // no View Transitions: fall back to the dithered dissolve
 			root.classList.add('fade'); setTheme(next); setTimeout(() => root.classList.remove('fade'), 600);
 			return;
