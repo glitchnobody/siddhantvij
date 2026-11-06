@@ -89,6 +89,15 @@ $(function () {
 			}
 		}
 	}
+	function rotBlit(buf, W, H, s, x, y, ang) { // nearest-neighbour rotation about the sprite centre
+		const c = cos(ang), sn = sin(ang), cx = s.w / 2, cy = s.h / 2, r = ceil(hypot(cx, cy));
+		for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++) {
+			const sx = round(cx + i * c + j * sn), sy = round(cy - i * sn + j * c);
+			if (sx < 0 || sy < 0 || sx >= s.w || sy >= s.h) continue;
+			const v = s.px[sy * s.w + sx], xx = round(x + cx + i), yy = round(y + cy + j);
+			if (v && xx >= 0 && yy >= 0 && xx < W && yy < H) buf[yy * W + xx] = v;
+		}
+	}
 	function touches(s, ix, iy, pad) { // is any sprite pixel within pad of this point?
 		for (let j = iy - pad; j <= iy + pad; j++) for (let i = ix - pad; i <= ix + pad; i++)
 			if (i >= 0 && j >= 0 && i < s.w && j < s.h && s.px[j * s.w + i]) return true;
@@ -517,7 +526,8 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 			return;
 		}
 		const r = h.ref;
-		if (h.type === 'ship') { r.boost = 1; sound.whoosh(); }
+		if (h.type === 'ship' && r.kind === 'satellite') { if (r.tw === undefined) { r.tw = 0; r.dir = Math.random() < .5 ? -1 : 1; sound.whoosh(); } } // knocked off balance: tilts, drops, steadies, drifts on
+		else if (h.type === 'ship') { r.boost = 1; sound.whoosh(); }
 		else if (h.type === 'ufo') { r.beam = 1.8; sound.beam(); }
 		else if (h.type === 'moon') { burst(sparks, r.x + r.spr.w / 2, r.y + r.spr.h / 2, 26, 48 * A, 1.1); sound.boom(); }
 		else if (h.type === 'planet') { r.shimmer = 1.6; sound.chord(); }
@@ -542,11 +552,19 @@ switchTheme(b.left + b.width / 2, b.top + b.height / 2);
 			const sh = ships[i], d = SHIPS[sh.kind];
 			sh.boost *= .985;
 			sh.beam = max(0, sh.beam - dt);
-			sh.x += sh.vx * (1 + sh.boost * 7) * (sh.beam > 0 ? .1 : 1) * dt; sh.y += sh.vy * dt;
+			let ang = 0, drift = 1;
+			if (sh.tw !== undefined) {
+				const p = sh.tw += dt;
+				ang = sh.dir * .9 * exp(-1.1 * p) * sin(p * 4.5);
+				sh.y += 30 * A * exp(-2 * p) * dt; // the fall
+				drift = min(1, p / 2.5); // engines resume once it has steadied
+				if (p > 3.5) sh.tw = undefined;
+			}
+			sh.x += sh.vx * drift * (1 + sh.boost * 7) * (sh.beam > 0 ? .1 : 1) * dt; sh.y += sh.vy * dt;
 			sh.yy = sh.y + sin(t * .7 + sh.ph) * sh.bob;
 			const s = shipFrame(sh.kind, floor(t * 7 + sh.ph) % d.frames, sh.sz);
 			sh.spr = sh.vx > 0 ? s : flipped(s);
-			blit(ink, SW, SH, sh.spr, sh.x, sh.yy);
+			if (ang) rotBlit(ink, SW, SH, sh.spr, sh.x, sh.yy, ang); else blit(ink, SW, SH, sh.spr, sh.x, sh.yy);
 			if (sh.beam > 0) { // dithered tractor beam
 				const cx = sh.x + sh.w / 2, top = sh.yy + s.h - 2, len = 46 * A;
 				for (let y = 0; y < len; y++) for (let x = -5 * A - y * .35; x <= 5 * A + y * .35; x++)
